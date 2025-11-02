@@ -29,8 +29,8 @@
 
 1. 克隆仓库
 ```bash
-git clone https://github.com/yourusername/file-time-fixer.git
-cd file-time-fixer
+git clone https://github.com/EmericLee/FileTimeFixer.git
+cd FileTimeFixer
 ```
 
 2. 安装前端依赖
@@ -68,7 +68,7 @@ npm run tauri build
 ## 项目结构
 
 ```
-file-time-fixer/
+FileTimeFixer/
 ├── src/                 # Vue.js前端源代码
 │   ├── App.vue         # 主应用组件
 │   └── main.js         # 应用入口点
