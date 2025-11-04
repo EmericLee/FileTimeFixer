@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "dev:all2": "start pnpm dev && start pnpm tauri dev",
+    "dev:integrated": "powershell -Command \"Start-Process -FilePath 'pnpm' -ArgumentList 'dev' -NoNewWindow -PassThru; Start-Sleep -Seconds 3; pnpm tauri dev\""
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.3",
@@ -16,6 +18,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.8",
     "@vitejs/plugin-vue": "^4.2.3",
+    "unocss": "^66.5.4",
     "vite": "^4.4.5"
   }
 }
