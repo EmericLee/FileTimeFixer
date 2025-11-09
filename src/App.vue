@@ -8,10 +8,9 @@
       </div>
       <div class="subtitle">高效管理和修复文件时间信息</div>
       <div>
-        <q-btn unelevated class="full-height"
-               @click="demonstrateEmitEvents"
-               color="primary" icon="info"
-               label="演示事件" />
+        <q-btn unelevated class="full-height q-mr-sm" @click="demonstrateEmitEvents" color="primary" icon="info"
+          label="演示事件" />
+        <q-btn unelevated class="full-height" @click="showConfigDialog" color="secondary" icon="settings" label="配置" />
       </div>
     </q-header>
 
@@ -23,13 +22,8 @@
           <q-card-section>
             <div class="row q-gutter-md">
               <div class="col">
-                <q-input
-                         v-model="currentDirectory"
-                         placeholder="输入目录路径或点击选择"
-                         @keyup.enter="loadDirectory"
-                         dense=""
-                         readonly
-                         outlined>
+                <q-input v-model="currentDirectory" placeholder="输入目录路径或点击选择" @keyup.enter="loadDirectory" dense=""
+                  readonly outlined>
                   <template v-slot:append>
                     <q-btn color="grey" flat @click="loadDirectory" :loading="loading" icon="refresh" />
                   </template>
@@ -37,7 +31,7 @@
               </div>
               <div class="col-auto">
                 <q-btn unelevated class="full-height" @click="selectDirectory" color="primary" icon="folder"
-                       label="选择目录" />
+                  label="选择目录" />
               </div>
             </div>
 
@@ -51,7 +45,8 @@
 
           </q-card-section>
           <!-- 扫描进度区域 -->
-          <q-linear-progress :value="files.length / filesAllLength" color="primary" size="25px" class="q-mt-sm">
+          <q-linear-progress instant-feedback :value="filesAllLength > 0 ? files.length / filesAllLength : 0"
+            color="primary" size="25px" class="q-mt-sm">
             <div class="absolute-full flex flex-center">
               <q-badge color="white" text-color="primary" :label="files.length + '/' + filesAllLength" />
             </div>
@@ -60,6 +55,7 @@
 
         <!-- 文件列表区域 -->
         <q-card v-if="files.length > 0" flat class="col q-ma-md full-height column">
+
           <q-card-section class="col-auto">
             <div class="row items-center justify-between">
               <div class="text-h6">
@@ -68,24 +64,26 @@
               </div>
               <div>
                 <q-chip color="info" text-color="white" icon="folder_open">
-                  共 {{ files.length }} 个文件
+                  共 {{ files.length }} / {{ filesAllLength }} 个文件
                 </q-chip>
               </div>
             </div>
           </q-card-section>
+
           <q-separator />
+
           <q-card-section class="col">
             <q-table ref="fileTable" :rows="files" :columns="columns" row-key="name" :rows-per-page-options="[0]" flat
-                     class="full-height">
+              class="full-height table-fixed">
               <template v-slot:body-cell-name="props">
                 <q-td :props="props">
-                  <div class="row items-center">
+                  <div class="q-pr-sm ellipsis cursor-help">
                     <!-- 缩进根据深度调整 -->
-                    <div v-for="n in props.row.depth" :key="n" class="q-mr-md">-</div>
-                    <q-icon :name="props.row.is_directory ? 'folder' : 'description'" size="md"
-                            :color="props.row.is_directory ? 'yellow' : ''"
-                            class="q-mr-sm" />
-                    {{ getRelativePath(props.row.path) }} {{ props.row.name }}
+                    <!-- <div v-for="n in props.row.depth" :key="n" class="q-mr-md">-</div> -->
+                    <q-icon :name="props.row.is_directory ? 'folder' : 'image'" size="md"
+                      :color="props.row.is_directory ? 'yellow' : ''" class="q-mr-sm" />
+                    {{ getRelativePath(props.row.path) }}
+                    <!-- {{ props.row.name }} -->
                   </div>
                 </q-td>
               </template>
@@ -102,8 +100,7 @@
                 <q-td :props="props" class="text-right">
                   <div class="row items-center justify-end">
                     <div v-if="props.row.modified > 0">
-                      <q-icon name="schedule" class="q-mr-sm"
-                              :color="props.row.is_directory ? 'yellow' : ''" />
+                      <q-icon name="schedule" class="q-mr-sm" :color="props.row.is_directory ? 'yellow' : ''" />
                       {{ formatTime(props.row.modified) }}
                     </div>
                     <div v-else>
@@ -126,6 +123,60 @@
             </div>
           </q-card-section>
         </q-card>
+
+        <!-- 配置对话框 -->
+        <q-dialog v-model="configDialog" persistent>
+          <q-card style="width: 500px; max-width: 90vw;">
+            <q-card-section>
+              <div class="text-h5">应用配置</div>
+              <div class="q-mt-sm text-subtitle2 text-grey">配置文件扫描和处理的相关参数</div>
+            </q-card-section>
+
+            <q-card-section class="q-pt-none">
+              <q-form @submit="saveConfig">
+                <!-- 批处理数量 -->
+                <div class="q-gutter-y-md">
+                  <q-input v-model.number="config.batchSize" label="批处理数量" type="number" min="1" max="1000" step="10"
+                    dense outlined>
+                    <template v-slot:append>
+                      <span class="text-grey-6 q-ml-sm">每次处理的文件数量</span>
+                    </template>
+                  </q-input>
+
+                  <!-- 扫描深度 -->
+                  <q-input v-model.number="config.scanDepth" label="扫描深度" type="number" min="1" max="20" step="1" dense
+                    outlined>
+                    <template v-slot:append>
+                      <span class="text-grey-6 q-ml-sm">递归扫描的目录层级</span>
+                    </template>
+                  </q-input>
+
+                  <!-- 扫描根目录 -->
+                  <q-input v-model="config.rootDirectory" label="系统根目录" dense readonly outlined>
+                    <template v-slot:append>
+                      <q-btn color="grey" flat @click="selectRootDirectory" icon="folder" />
+                    </template>
+                  </q-input>
+
+                  <!-- DryRun模式 -->
+                  <div class="row items-center justify-between">
+                    <div>
+                      <div class="text-base">DryRun模式</div>
+                      <div class="text-sm text-grey-6">开启时不会实际修改文件</div>
+                    </div>
+                    <q-toggle v-model="config.dryRun" color="primary" checked-icon="check" unchecked-icon="clear" />
+                  </div>
+                </div>
+              </q-form>
+            </q-card-section>
+
+            <q-card-actions align="right" class="q-pt-none">
+              <q-btn flat label="取消" @click="configDialog = false" />
+              <q-btn flat label="恢复默认" @click="resetConfig" />
+              <q-btn color="primary" label="保存" @click="saveConfig" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
       </q-page>
     </q-page-container>
   </q-layout>
@@ -145,6 +196,14 @@ export default {
       filesAllLength: 100,
       loading: false,
       error: '',
+      // 配置参数
+      configDialog: false,
+      config: {
+        batchSize: 20,
+        scanDepth: 5,
+        rootDirectory: 'C:/',
+        dryRun: true
+      },
       columns: [
         {
           name: 'name',
@@ -153,7 +212,8 @@ export default {
           align: 'left',
           field: 'name',
           sortable: true,
-          style: 'min-width: 300px'
+          ellipsis: true,
+          // style: 'min-width: 300px'
         },
         {
           name: 'size',
@@ -161,7 +221,7 @@ export default {
           label: '大小',
           field: 'size',
           sortable: true,
-          style: 'width: 120px'
+          headerStyle: 'width: 10em'
         },
         {
           name: 'modified',
@@ -169,12 +229,34 @@ export default {
           label: '修改时间',
           field: 'modified',
           sortable: true,
-          style: 'width: 180px'
+          headerStyle: 'width: 15em'
         }
       ]
     }
   },
+  mounted() {
+    // 加载保存的配置
+    this.loadConfig();
+  },
+
   methods: {
+    // 加载配置
+    loadConfig() {
+      try {
+        const savedConfig = localStorage.getItem('fileTimeFixerConfig');
+        if (savedConfig) {
+          const parsedConfig = JSON.parse(savedConfig);
+          this.config = {
+            ...this.config,
+            ...parsedConfig
+          };
+        }
+      } catch (err) {
+        console.warn('加载配置失败:', err);
+        // 如果加载失败，使用默认配置
+        this.resetConfig();
+      }
+    },
 
     // 演示事件
     async demonstrateEmitEvents() {
@@ -207,6 +289,8 @@ export default {
       this.loading = true
       this.error = ''
       this.files = []
+      this.fileAll = []
+      this.filesAllLength = 0
 
       try {
 
@@ -216,17 +300,20 @@ export default {
           // this.files.push(event.payload)
           this.fileAll = event.payload
           this.filesAllLength = event.payload.length
+          const random = Math.random() * 100
           this.$q.notify({
-            message: `目录扫描完成，共找到 ${this.filesAllLength} 个文件`,
-            color: 'positive',
-            position: 'top'
+            type: 'negative',
+            message: `目录扫描完成，共找到 ${this.filesAllLength} 个文件 (${new Date().toLocaleString('zh-CN')})`,
+            color: 'negative',
+            multiLine: true,
+            position: 'bottom-right'
           })
         })
 
         // 设置扫描进度事件监听器
         this.scanProgressUnlisten = await listen('scan_directory:progress', (event) => {
           // console.log('扫描进度:', event.payload)
-          this.files.push(event.payload)
+          this.files.push(...event.payload)
 
           // 使用nextTick确保DOM更新后再滚动
           this.$nextTick(() => {
@@ -244,9 +331,10 @@ export default {
           this.loading = false
           // 扫描完成后显示通知
           this.$q.notify({
-            message: `目录扫描完成，共找到 ${this.files.length} 个文件`,
+            message: `目录分析完成，共找到 ${this.files.length} 个文件`,
             color: 'positive',
-            position: 'top'
+            multiLine: true,
+            position: 'bottom-right'
           })
           // 清理事件监听器
           if (this.scanProgressUnlisten) {
@@ -260,7 +348,7 @@ export default {
         })
 
         // 启动扫描，但不等待完整结果
-        invoke('scan_directory', { directory: this.currentDirectory })
+        invoke('scan_directory', { directory: this.currentDirectory, config: this.config })
 
       } catch (err) {
         this.error = '加载目录失败: ' + err
@@ -329,10 +417,75 @@ export default {
 
       // 如果不是当前目录下的文件，返回完整路径
       return fullPath;
+    },
+
+    // 显示配置对话框
+    showConfigDialog() {
+      this.configDialog = true;
+    },
+
+    // 选择根目录
+    async selectRootDirectory() {
+      try {
+        const selected = await invoke('select_directory');
+        if (selected) {
+          this.config.rootDirectory = selected;
+        }
+      } catch (err) {
+        this.error = '选择目录失败: ' + err;
+      }
+    },
+
+    // 获取系统根目录
+    getSystemRoot() {
+      // 在浏览器环境中默认返回C盘根目录
+      return 'C:/';
+
+      // 注意：在Tauri运行时环境中，可以使用
+      // window.__TAURI__?.process?.platform 来判断
+    },
+
+    // 保存配置
+    saveConfig() {
+      // 验证配置
+      if (this.config.batchSize < 1) this.config.batchSize = 1;
+      if (this.config.scanDepth < 1) this.config.scanDepth = 1;
+
+      // 保存到本地存储
+      try {
+        localStorage.setItem('fileTimeFixerConfig', JSON.stringify(this.config));
+      } catch (err) {
+        console.warn('无法保存配置到本地存储:', err);
+      }
+
+      this.$q.notify({
+        message: '配置已保存',
+        color: 'positive',
+        position: 'top'
+      });
+
+      this.configDialog = false;
+    },
+
+    // 恢复默认配置
+    resetConfig() {
+      this.config = {
+        batchSize: 50,
+        scanDepth: 5,
+        rootDirectory: this.getSystemRoot(),
+        dryRun: true
+      };
+
+      this.$q.notify({
+        message: '配置已恢复默认',
+        color: 'info',
+        position: 'top'
+      });
     }
   },
+
+  // 清理事件监听器
   beforeUnmount() {
-    // 清理事件监听器
     if (this.scanReadyUnlisten) {
       this.scanReadyUnlisten()
       this.scanReadyUnlisten = null
@@ -347,6 +500,7 @@ export default {
     }
   }
 }
+
 </script>
 
 <style scoped>

@@ -91,26 +91,45 @@ pub struct FileInfo {
     pub size: u64,
     pub modified: u64,
     pub is_directory: bool,
-    pub depth: u32,
+    pub depth: u64,
 }
 
 #[tauri::command]
 pub async fn scan_directory(
     app_handle: AppHandle,
     directory: String,
-    depth: Option<u32>,
+    config: serde_json::Value,
+    depth: Option<u64>,
 ) -> Result<Vec<FileInfo>, String> {
     // 设置默认值
     let depth = depth.unwrap_or(0);
+    let max_depth = config
+        .get("scanDepth")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(5);
+    let batch_size = config
+        .get("batchSize")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(20) as usize;
+    let dry_run = config
+        .get("dryRun")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    if depth > max_depth {
+        return Err(format!("超过最大深度 {}，当前深度 {}", max_depth, depth));
+    }
+
 
     // 扫描所有文件和目录，收集路径信息
     let all_files = collect_files(directory, depth).await?;
     app_handle
-        .emit_all("scan_directory:ready",serde_json::json!(all_files))
+        .emit_all("scan_directory:ready", serde_json::json!(all_files))
         .expect("发送事件失败");
 
     // 处理每个文件的时间戳
     let mut processed_files = Vec::new();
+    let mut processed_files_buffer = Vec::new();
+
     for mut file_info in all_files {
         if !file_info.is_directory {
             // 只对图片文件获取时间戳
@@ -124,19 +143,41 @@ pub async fn scan_directory(
                     }
                 };
             }
+
+            // 缓存处理结果
+            processed_files_buffer.push(file_info);
+
+            // 每处理 50 个文件，发送一次进度事件,性能考虑
+            if processed_files_buffer.len() >= batch_size {
+                app_handle
+                    .emit_all(
+                        "scan_directory:progress",
+                        serde_json::json!(processed_files_buffer),
+                    )
+                    .expect("发送进度事件失败");
+                processed_files.append(&mut processed_files_buffer);
+                processed_files_buffer.clear();
+            }
         }
-
-        // 发送进度事件到前端
-        app_handle
-            .emit_all("scan_directory:progress", serde_json::json!(file_info))
-            .expect("发送进度事件失败");
-
-        processed_files.push(file_info);
     }
 
-    // 发送完成事件
+    // 发送进度事件到前端
+    // 直接发送剩余进度，无需判断长度
     app_handle
-        .emit_all("scan_directory:complete",serde_json::json!(processed_files))
+        .emit_all(
+            "scan_directory:progress",
+            serde_json::json!(processed_files_buffer),
+        )
+        .expect("发送进度事件失败");
+    processed_files.append(&mut processed_files_buffer);
+    processed_files_buffer.clear();
+
+    // 发送完成事件 
+    app_handle
+        .emit_all(
+            "scan_directory:complete",
+            serde_json::json!(processed_files),
+        )
         .expect("发送完成事件失败");
 
     Ok(processed_files)
@@ -149,18 +190,7 @@ fn is_image_file(path: &str) -> bool {
             let ext_lower = ext_str.to_lowercase();
             return matches!(
                 ext_lower.as_str(),
-                "jpg"
-                    | "jpeg"
-                    | "png"
-                    | "gif"
-                    | "bmp"
-                    | "tiff"
-                    | "tif"
-                    | "webp"
-                    | "raw"
-                    | "cr2"
-                    | "nef"
-                    | "arw"
+                "jpg" | "jpeg" | "png" | "gif" | "bmp" | "tiff" | "tif" | "webp" | "raw" | "heic"
             );
         }
     }
@@ -168,7 +198,7 @@ fn is_image_file(path: &str) -> bool {
 }
 
 // 辅助函数：收集所有文件和目录信息（不获取时间戳）
-async fn collect_files(directory: String, current_depth: u32) -> Result<Vec<FileInfo>, String> {
+async fn collect_files(directory: String, current_depth: u64) -> Result<Vec<FileInfo>, String> {
     let path = Path::new(&directory);
     let mut entries: Vec<_> = std::fs::read_dir(path)
         .map_err(|e| format!("无法读取目录: {}", e))?

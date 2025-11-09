@@ -7,7 +7,7 @@ import '@quasar/extras/fontawesome-v6/fontawesome-v6.css'
 import App from './App.vue'
 // Import Quasar css
 import 'quasar/dist/quasar.css'
-// import './styles/global.scss'
+import './styles/global.scss'
 
 const app = createApp(App)
 
