@@ -1,10 +1,10 @@
 {
   "build": {
-    "beforeBuildCommand": "",
-    "beforeDevCommand": "",
+    "beforeBuildCommand": "pnpm vite build",
+    "beforeDevCommand": "pnpm vite",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
-    "withGlobalTauri": false
+    "withGlobalTauri": false 
   },
   "package": {
     "productName": "File Time Fixer",
@@ -40,8 +40,19 @@
       }
     },
     "bundle": {
-      "active": false,
-      "identifier": "com.filetimefixer.app"
+      "active": true,
+      "identifier": "com.filetimefixer.app",
+      "category": "Utility",
+      "shortDescription": "A tool to fix file timestamps",
+      "longDescription": "File Time  Fixer is a desktop application that allows you to modify and fix file timestamps with ease.",
+      "targets": "all",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ]
     },
     "security": {
       "csp": null

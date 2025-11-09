@@ -41,6 +41,7 @@ jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
+target/
 
 # TypeScript cache
 *.tsbuildinfo
@@ -146,3 +147,4 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+

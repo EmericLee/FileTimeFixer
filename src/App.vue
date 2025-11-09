@@ -1,86 +1,139 @@
 <template>
-  <div id="app">
-    <header>
-      <div class="container mx-auto px-4 py-6">
-        <h1 class="text-2xl md:text-3xl font-bold text-white text-center">文件时间修复器</h1>
-        <p class="text-white/90 text-center">高效管理和修复文件时间信息</p>
+  <q-layout id="app" view="hHh lpr fff" style="height: 100vh;">
+    <!-- 头部区域 -->
+    <q-header elevated class="row justify-between q-pa-lg">
+      <div class="title">
+        <q-icon name="folder_open" class="title-icon" />
+        文件时间修复器
       </div>
-    </header>
-    
-    <main>
-      <div class="container mx-auto px-4 h-full">
-        <!-- 控制区域 - 优化的Grid布局 -->
-        <div class="grid grid-cols-12 gap-2 mt-2">
-          <div class="col-span-12">
-            <div class="grid grid-cols-12 gap-2 auto-cols-fr">
-              <!-- 输入框在移动端占满宽度，在桌面端占较大比例 -->
-              <div class="col-span-12 sm:col-span-7 md:col-span-6">
-                <input 
-                  v-model="currentDirectory" 
-                  @keyup.enter="loadDirectory" 
-                  placeholder="输入目录路径或点击选择"
-                  class="w-full  px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  type="text"
-                  autocomplete="off"
-                />
+      <div class="subtitle">高效管理和修复文件时间信息</div>
+      <div>
+        <q-btn unelevated class="full-height"
+               @click="demonstrateEmitEvents"
+               color="primary" icon="info"
+               label="演示事件" />
+      </div>
+    </q-header>
+
+    <!-- 主内容区域 -->
+    <q-page-container class="full-height">
+      <q-page class="full-height column">
+        <!-- 控制区域 -->
+        <q-card flat class="col-auto" style="background-color: aliceblue;">
+          <q-card-section>
+            <div class="row q-gutter-md">
+              <div class="col">
+                <q-input
+                         v-model="currentDirectory"
+                         placeholder="输入目录路径或点击选择"
+                         @keyup.enter="loadDirectory"
+                         dense=""
+                         readonly
+                         outlined>
+                  <template v-slot:append>
+                    <q-btn color="grey" flat @click="loadDirectory" :loading="loading" icon="refresh" />
+                  </template>
+                </q-input>
               </div>
-              <!-- 按钮在移动端垂直堆叠 -->
-              <div class="col-span-6 sm:col-span-2 md:col-span-2">
-                <button @click="selectDirectory" class="w-full h-full bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50">选择</button>
-              </div>
-              <div class="col-span-6 sm:col-span-3 md:col-span-2">
-                <button @click="loadDirectory" class="w-full h-full bg-gray-200 text-gray-800 px-3 py-2 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50" :disabled="loading">
-                  {{ loading ? '加载中...' : '加载' }}
-                </button>
+              <div class="col-auto">
+                <q-btn unelevated class="full-height" @click="selectDirectory" color="primary" icon="folder"
+                       label="选择目录" />
               </div>
             </div>
-          </div>
-        </div>
-        
-        <!-- 错误提示区域 -->
-        <div v-if="error" class="mt-4 bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-md">
-          <strong class="font-bold">错误：</strong>{{ error }}
-        </div>
-        
+
+            <!-- 错误提示区域 -->
+            <q-banner v-if="error" class="text-white bg-red q-mt-md" inline-actions>
+              {{ error }}
+              <template v-slot:action>
+                <q-btn flat color="white" label="关闭" @click="error = ''" />
+              </template>
+            </q-banner>
+
+          </q-card-section>
+          <!-- 扫描进度区域 -->
+          <q-linear-progress :value="files.length / filesAllLength" color="primary" size="25px" class="q-mt-sm">
+            <div class="absolute-full flex flex-center">
+              <q-badge color="white" text-color="primary" :label="files.length + '/' + filesAllLength" />
+            </div>
+          </q-linear-progress>
+        </q-card>
+
         <!-- 文件列表区域 -->
-        <div v-if="files.length > 0" class="mt-4 border border-gray-200 rounded-lg overflow-hidden">
-          <div class="bg-blue-50 p-3 border-b border-gray-200">
-            <h3 class="text-lg font-medium m-0">文件列表</h3>
-            <p class="text-sm m-0 text-gray-600">找到 {{ files.length }} 个文件</p>
-          </div>
-          <div class="file-list">
-            <!-- 表头 - 使用固定宽度的网格布局 -->
-            <div class="file-item bg-gray-100 font-medium grid grid-cols-12 gap-4">
-              <div class="col-span-12 sm:col-span-7 font-medium">文件名</div>
-              <div class="col-span-4 sm:col-span-2 font-medium text-right">大小</div>
-              <div class="col-span-8 sm:col-span-3 font-medium text-right">修改时间</div>
+        <q-card v-if="files.length > 0" flat class="col q-ma-md full-height column">
+          <q-card-section class="col-auto">
+            <div class="row items-center justify-between">
+              <div class="text-h6">
+                <q-icon name="description" class="q-mr-sm" />
+                文件列表
+              </div>
+              <div>
+                <q-chip color="info" text-color="white" icon="folder_open">
+                  共 {{ files.length }} 个文件
+                </q-chip>
+              </div>
             </div>
-            <!-- 文件项 - 使用相同的网格布局 -->
-            <div 
-              v-for="file in files" 
-              :key="file.path" 
-              class="file-item hover:bg-gray-50 transition-colors grid grid-cols-12 gap-4"
-              :class="{ 'is-directory': file.isDirectory }"
-            >
-              <div class="col-span-12 sm:col-span-7 truncate" title="{{ file.name }}">{{ file.name }}</div>
-              <span class="col-span-4 sm:col-span-2 text-right" v-if="!file.isDirectory">{{ formatFileSize(file.size) }}</span>
-              <span class="col-span-4 sm:col-span-2 text-right" v-else>-</span>
-              <span class="col-span-8 sm:col-span-3 text-right">{{ formatTime(file.modified) }}</span>
-            </div>
-          </div>
-        </div>
-        
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="col">
+            <q-table ref="fileTable" :rows="files" :columns="columns" row-key="name" :rows-per-page-options="[0]" flat
+                     class="full-height">
+              <template v-slot:body-cell-name="props">
+                <q-td :props="props">
+                  <div class="row items-center">
+                    <!-- 缩进根据深度调整 -->
+                    <div v-for="n in props.row.depth" :key="n" class="q-mr-md">-</div>
+                    <q-icon :name="props.row.is_directory ? 'folder' : 'description'" size="md"
+                            :color="props.row.is_directory ? 'yellow' : ''"
+                            class="q-mr-sm" />
+                    {{ getRelativePath(props.row.path) }} {{ props.row.name }}
+                  </div>
+                </q-td>
+              </template>
+
+              <template v-slot:body-cell-size="props">
+                <q-td :props="props" class="text-right">
+                  <q-chip v-if="!props.row.is_directory" color="transparent" text-color="grey-6" size="sm" dense>
+                    {{ formatFileSize(props.row.size) }}
+                  </q-chip>
+                </q-td>
+              </template>
+
+              <template v-slot:body-cell-modified="props">
+                <q-td :props="props" class="text-right">
+                  <div class="row items-center justify-end">
+                    <div v-if="props.row.modified > 0">
+                      <q-icon name="schedule" class="q-mr-sm"
+                              :color="props.row.is_directory ? 'yellow' : ''" />
+                      {{ formatTime(props.row.modified) }}
+                    </div>
+                    <div v-else>
+                      --
+                    </div>
+                  </div>
+                </q-td>
+              </template>
+            </q-table>
+          </q-card-section>
+        </q-card>
+
         <!-- 空状态区域 -->
-        <div v-else-if="!loading" class="mt-4 bg-blue-50 border border-blue-200 px-4 py-3 rounded-md">
-          <p class="m-0">请选择一个目录来查看文件信息</p>
-        </div>
-      </div>
-    </main>
-  </div>
+        <q-card v-else-if="!loading" flat class="col q-ma-lg">
+          <q-card-section class="text-center">
+            <div class="empty-state">
+              <q-icon name="folder_open" size="4rem" color="grey-6" />
+              <div class="text-h6 q-mt-md">请选择一个目录来查看文件信息</div>
+              <q-btn color="primary" icon="folder" label="选择目录" @click="selectDirectory" class="q-mt-md" />
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-page>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script>
 import { invoke } from '@tauri-apps/api/tauri'
+import { listen } from '@tauri-apps/api/event'
 
 export default {
   name: 'App',
@@ -88,11 +141,51 @@ export default {
     return {
       currentDirectory: '',
       files: [],
+      fileAll: [],
+      filesAllLength: 100,
       loading: false,
-      error: ''
+      error: '',
+      columns: [
+        {
+          name: 'name',
+          required: true,
+          label: '文件名',
+          align: 'left',
+          field: 'name',
+          sortable: true,
+          style: 'min-width: 300px'
+        },
+        {
+          name: 'size',
+          align: 'right',
+          label: '大小',
+          field: 'size',
+          sortable: true,
+          style: 'width: 120px'
+        },
+        {
+          name: 'modified',
+          align: 'right',
+          label: '修改时间',
+          field: 'modified',
+          sortable: true,
+          style: 'width: 180px'
+        }
+      ]
     }
   },
   methods: {
+
+    // 演示事件
+    async demonstrateEmitEvents() {
+      try {
+        await invoke('demonstrate_emit_events')
+        console.log('演示事件成功触发')
+      } catch (err) {
+        this.error = '演示事件失败: ' + err
+      }
+    },
+
     async selectDirectory() {
       try {
         const selected = await invoke('select_directory')
@@ -104,28 +197,91 @@ export default {
         this.error = '选择目录失败: ' + err
       }
     },
-    
+
     async loadDirectory() {
       if (!this.currentDirectory.trim()) {
         this.error = '请输入目录路径'
         return
       }
-      
+
       this.loading = true
       this.error = ''
       this.files = []
-      
+
       try {
-        const result = await invoke('list_files', { directory: this.currentDirectory })
-        this.files = result
-        console.log(this.files)
+
+        // 设置扫描进度事件监听器
+        this.scanReadyUnlisten = await listen('scan_directory:ready', (event) => {
+          // console.log('扫描进度:', event.payload)
+          // this.files.push(event.payload)
+          this.fileAll = event.payload
+          this.filesAllLength = event.payload.length
+          this.$q.notify({
+            message: `目录扫描完成，共找到 ${this.filesAllLength} 个文件`,
+            color: 'positive',
+            position: 'top'
+          })
+        })
+
+        // 设置扫描进度事件监听器
+        this.scanProgressUnlisten = await listen('scan_directory:progress', (event) => {
+          // console.log('扫描进度:', event.payload)
+          this.files.push(event.payload)
+
+          // 使用nextTick确保DOM更新后再滚动
+          this.$nextTick(() => {
+            // 获取表格的滚动容器
+            const scrollContainer = this.$refs.fileTable?.$el?.querySelector('.q-table__middle')
+            // 滚动到底部
+            if (scrollContainer) {
+              scrollContainer.scrollTop = scrollContainer.scrollHeight
+            }
+          })
+        })
+
+        // 设置扫描完成事件监听器
+        this.scanCompleteUnlisten = await listen('scan_directory:complete', () => {
+          this.loading = false
+          // 扫描完成后显示通知
+          this.$q.notify({
+            message: `目录扫描完成，共找到 ${this.files.length} 个文件`,
+            color: 'positive',
+            position: 'top'
+          })
+          // 清理事件监听器
+          if (this.scanProgressUnlisten) {
+            this.scanProgressUnlisten()
+            this.scanProgressUnlisten = null
+          }
+          if (this.scanCompleteUnlisten) {
+            this.scanCompleteUnlisten()
+            this.scanCompleteUnlisten = null
+          }
+        })
+
+        // 启动扫描，但不等待完整结果
+        invoke('scan_directory', { directory: this.currentDirectory })
+
       } catch (err) {
         this.error = '加载目录失败: ' + err
-      } finally {
         this.loading = false
+
+        // 清理事件监听器
+        if (this.scanReadyUnlisten) {
+          this.scanReadyUnlisten()
+          this.scanReadyUnlisten = null
+        }
+        if (this.scanProgressUnlisten) {
+          this.scanProgressUnlisten()
+          this.scanProgressUnlisten = null
+        }
+        if (this.scanCompleteUnlisten) {
+          this.scanCompleteUnlisten()
+          this.scanCompleteUnlisten = null
+        }
       }
     },
-    
+
     formatFileSize(bytes) {
       if (bytes === 0) return '0 B'
       const k = 1024
@@ -133,7 +289,7 @@ export default {
       const i = Math.floor(Math.log(bytes) / Math.log(k))
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
     },
-    
+
     formatTime(timestamp) {
       // 将秒级Unix时间戳转换为毫秒级
       // JavaScript的Date对象不能自动判断是秒级还是毫秒级时间戳
@@ -142,119 +298,101 @@ export default {
       // 如果是秒级时间戳（小于10^12），乘以1000转成毫秒级
       const timestampMs = numTimestamp < 1000000000000 ? numTimestamp * 1000 : numTimestamp;
       return new Date(timestampMs).toLocaleString('zh-CN')
+    },
+
+    // 获取相对于当前目录的路径
+    getRelativePath(fullPath) {
+      if (!this.currentDirectory || !fullPath) {
+        return fullPath;
+      }
+
+      // 确保路径格式一致
+      const currentDir = this.currentDirectory.replace(/\\/g, '/');
+      const filePath = fullPath.replace(/\\/g, '/');
+
+      // 如果文件路径以当前目录路径开头，则去掉重复部分
+      if (filePath.startsWith(currentDir)) {
+        let relativePath = filePath.substring(currentDir.length);
+
+        // 去掉开头的斜杠（如果存在）
+        if (relativePath.startsWith('/')) {
+          relativePath = relativePath.substring(1);
+        }
+
+        // 如果相对路径为空，则显示当前目录
+        if (relativePath === '') {
+          return '.';
+        }
+
+        return relativePath;
+      }
+
+      // 如果不是当前目录下的文件，返回完整路径
+      return fullPath;
+    }
+  },
+  beforeUnmount() {
+    // 清理事件监听器
+    if (this.scanReadyUnlisten) {
+      this.scanReadyUnlisten()
+      this.scanReadyUnlisten = null
+    }
+    if (this.scanProgressUnlisten) {
+      this.scanProgressUnlisten()
+      this.scanProgressUnlisten = null
+    }
+    if (this.scanCompleteUnlisten) {
+      this.scanCompleteUnlisten()
+      this.scanCompleteUnlisten = null
     }
   }
 }
 </script>
 
-<style>
-/* 基础布局结构样式 */
-html {
-  font-size: 85%; /* 整体字体缩小到60% */
-}
-
-html, body {
-  height: 100%;
-  overflow: hidden;
-}
-
-#app {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 主内容区域设置，确保文件列表可滚动 */
-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-main > .container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
+<style scoped>
 /* 自定义导航栏样式 */
-header {
+.app-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-/* 文件列表样式 - 优化的Grid布局 */
-.file-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1px;
-  height: 100%;
-  overflow-y: auto;
-  background-color: #e5e7eb;
-}
-
-/* 自定义滚动条 */
-.file-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.file-list::-webkit-scrollbar-track {
-  background: #f3f4f6;
-}
-
-.file-list::-webkit-scrollbar-thumb {
-  background: #9ca3af;
-  border-radius: 3px;
-}
-
-.file-list::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-/* 文件项基础样式 - 现在使用组件内的grid布局 */
-.file-item {
-  padding: 0.75rem 1rem;
-  background-color: white;
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
   align-items: center;
+  gap: 12px;
 }
 
-/* 响应式优化 - 移动设备 */
-@media (max-width: 639px) {
-  /* 表头在移动设备上隐藏 */
-  .file-item.bg-gray-100 {
-    display: none;
-  }
-  
-  /* 文件项在移动端的样式调整 */
-  .file-item:not(.bg-gray-100) {
-    grid-template-rows: auto auto;
-  }
-  
-  /* 第二行显示大小和时间信息 */
-  .file-item .col-span-4,
-  .file-item .col-span-8 {
-    font-size: 0.85rem;
-    color: #6b7280;
-    display: inline-block;
-  }
+.title-icon {
+  font-size: 28px;
 }
 
-/* 平板和桌面设备的优化 */
-@media (min-width: 640px) {
-  /* 确保表格对齐良好 */
-  .file-item {
-    padding: 0.6rem 1rem;
-  }
-  
-  /* 目录项样式区分 */
-  .file-item.is-directory {
-    background-color: #f9fafb;
-  }
-  
-  .file-item.is-directory .file-name {
-    font-weight: 500;
-  }
+.subtitle {
+  text-align: center;
+  padding: 8px 16px 16px;
+  font-size: 16px;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+.control-card {
+  margin-bottom: 16px;
+}
+
+.file-list-card {
+  min-height: 400px;
+}
+
+.file-table {
+  height: 100%;
+}
+
+.empty-card {
+  min-height: 400px;
+}
+
+.empty-state {
+  padding: 60px 20px;
 }
 </style>

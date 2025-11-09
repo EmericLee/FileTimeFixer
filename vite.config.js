@@ -1,10 +1,22 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import UnoCSS from "unocss/vite";
+import { quasar, transformAssetUrls } from '@quasar/vite-plugin';
+import VueDevTools from 'vite-plugin-vue-devtools';
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [vue(), UnoCSS()],
+  plugins: [
+    vue({
+      template: { transformAssetUrls }
+    }),
+    quasar({
+      sassVariables: 'src/quasar-variables.sass'
+    }),
+    // 添加Vue DevTools插件
+    VueDevTools({
+      standalone: true
+    })
+  ],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -19,4 +31,18 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+
+  // Build configuration
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: true, // 启用源映射以便更好地调试
+    minify: 'esbuild',
+    target: 'esnext'
+  },
+
+  // 优化依赖
+  optimizeDeps: {
+    include: ['vue', 'quasar', 'vite-plugin-vue-devtools']
+  }
 }));

@@ -1,0 +1,69 @@
+// =============================================================================
+// 全局样式文件 - 支持嵌套和注释
+// =============================================================================
+
+// 基础变量定义
+$base-font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+$base-bg-color: #f5f7fa;
+$base-spacing: 4px; // 基础间距单位
+
+// 基础布局结构样式
+// html, body {
+//   height: 100%;
+//   margin: 0;
+//   padding: 0;
+//   font-family: $base-font-family;
+// }
+
+// // 应用程序根容器
+// #app {
+//   height: 100vh;
+//   display: flex;
+//   flex-direction: column;
+//   background-color: $base-bg-color;
+// }
+
+// =============================================================================
+// 工具类样式
+// =============================================================================
+
+// 高度工具类
+// .h-100 { height: 100%; }
+// .h-auto { height: auto; }
+
+// 显示与布局工具类
+// .d-flex {
+//   display: flex;
+  
+//   // 嵌套的对齐方式
+//   &.justify-content-between {
+//     justify-content: space-between;
+//   }
+  
+//   &.align-items-center {
+//     align-items: center;
+//   }
+  
+//   &.flex-column {
+//     flex-direction: column;
+//   }
+// }
+
+// 边距相关工具类 (以 $base-spacing 为基数)
+// .mr-1 { margin-right: $base-spacing * 1; }
+// .mr-2 { margin-right: $base-spacing * 2; }
+// .mr-3 { margin-right: $base-spacing * 3; }
+
+// .ml-2 { margin-left: $base-spacing * 2; }
+
+// .p-2 { padding: $base-spacing * 2; }
+// .p-3 { padding: $base-spacing * 3; }
+
+// // 宽度百分比工具类
+// .w-50 { width: 50%; }
+// .w-100 { width: 100%; }
+
+// // 溢出处理工具类
+// .overflow-auto {
+//   overflow: auto;
+// }
