@@ -4,8 +4,7 @@ use serde::Serialize;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-use tauri::api::dialog::blocking::FileDialogBuilder;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter};
 
 // 辅助函数：读取文件并获取EXIF数据
 fn read_exif(path: &str) -> Result<exif::Exif, String> {
@@ -111,7 +110,7 @@ pub async fn scan_directory(
         .get("batchSize")
         .and_then(|v| v.as_u64())
         .unwrap_or(20) as usize;
-    let dry_run = config
+    let _dry_run = config
         .get("dryRun")
         .and_then(|v| v.as_bool())
         .unwrap_or(false);
@@ -123,7 +122,7 @@ pub async fn scan_directory(
     // 扫描所有文件和目录，收集路径信息
     let all_files = collect_files(directory, depth).await?;
     app_handle
-        .emit_all("scan_directory:ready", serde_json::json!(all_files))
+        .emit("scan_directory:ready", serde_json::json!(all_files))
         .expect("发送事件失败");
 
     // 处理每个文件的时间戳
@@ -150,7 +149,7 @@ pub async fn scan_directory(
             // 每处理 50 个文件，发送一次进度事件,性能考虑
             if processed_files_buffer.len() >= batch_size {
                 app_handle
-                    .emit_all(
+                    .emit(
                         "scan_directory:progress",
                         serde_json::json!(processed_files_buffer),
                     )
@@ -164,7 +163,7 @@ pub async fn scan_directory(
     // 发送进度事件到前端
     // 直接发送剩余进度，无需判断长度
     app_handle
-        .emit_all(
+        .emit(
             "scan_directory:progress",
             serde_json::json!(processed_files_buffer),
         )
@@ -174,7 +173,7 @@ pub async fn scan_directory(
 
     // 发送完成事件 
     app_handle
-        .emit_all(
+        .emit(
             "scan_directory:complete",
             serde_json::json!(processed_files),
         )
@@ -256,12 +255,19 @@ async fn collect_files(directory: String, current_depth: u64) -> Result<Vec<File
 }
 
 #[tauri::command]
-pub fn select_directory() -> Result<String, String> {
-    let dialog = FileDialogBuilder::new();
-
-    match dialog.pick_folder() {
-        Some(path) => Ok(path.to_string_lossy().into_owned()),
-        None => Err("用户取消选择".to_string()),
+pub async fn select_directory(app_handle: AppHandle) -> Result<String, String> {
+    use tauri_plugin_dialog::DialogExt;
+    
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    
+    app_handle.dialog().file().pick_folder(move |path| {
+        let _ = tx.send(path);
+    });
+    
+    match rx.await {
+        Ok(Some(path)) => Ok(path.to_string()),
+        Ok(None) => Err("用户取消选择".to_string()),
+        Err(_) => Err("等待选择结果时出错".to_string()),
     }
 }
 
@@ -271,12 +277,12 @@ pub fn demonstrate_emit_events(app_handle: AppHandle) -> Result<(), String> {
     dbg!("demonstrate_emit_events");
     // 1. 发送简单字符串事件
     app_handle
-        .emit_all("simple-event", "这是一个简单的事件消息")
+        .emit("simple-event", "这是一个简单的事件消息")
         .map_err(|e| format!("发送简单事件失败: {}", e))?;
 
     // 2. 发送JSON对象事件
     app_handle
-        .emit_all(
+        .emit(
             "json-event",
             serde_json::json!({
                 "user": "张三",
@@ -288,17 +294,17 @@ pub fn demonstrate_emit_events(app_handle: AppHandle) -> Result<(), String> {
 
     // 3. 发送数组事件
     app_handle
-        .emit_all("array-event", &["项目1", "项目2", "项目3"])
+        .emit("array-event", &["项目1", "项目2", "项目3"])
         .map_err(|e| format!("发送数组事件失败: {}", e))?;
 
     // 4. 发送数字事件
     app_handle
-        .emit_all("number-event", 42)
+        .emit("number-event", 42)
         .map_err(|e| format!("发送数字事件失败: {}", e))?;
 
     // 5. 发送布尔事件
     app_handle
-        .emit_all("boolean-event", true)
+        .emit("boolean-event", true)
         .map_err(|e| format!("发送布尔事件失败: {}", e))?;
 
     Ok(())

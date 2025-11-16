@@ -14,13 +14,13 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
-    "@tauri-apps/api": "^1.5.3",
+    "@tauri-apps/api": "^2.0.0",
     "quasar": "^2.14.2",
     "vue": "^3.3.4"
   },
   "devDependencies": {
     "@quasar/vite-plugin": "^1.6.0",
-    "@tauri-apps/cli": "^1.5.8",
+    "@tauri-apps/cli": "^2.0.0",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/devtools-api": "^8.0.3",
     "concurrently": "^9.2.1",

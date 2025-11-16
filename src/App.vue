@@ -9,7 +9,7 @@
       <div class="subtitle">高效管理和修复文件时间信息</div>
       <div>
         <q-btn unelevated class="full-height q-mr-sm" @click="demonstrateEmitEvents" color="primary" icon="info"
-          label="演示事件" />
+               label="演示事件" />
         <q-btn unelevated class="full-height" @click="showConfigDialog" color="secondary" icon="settings" label="配置" />
       </div>
     </q-header>
@@ -23,7 +23,7 @@
             <div class="row q-gutter-md">
               <div class="col">
                 <q-input v-model="currentDirectory" placeholder="输入目录路径或点击选择" @keyup.enter="loadDirectory" dense=""
-                  readonly outlined>
+                         readonly outlined>
                   <template v-slot:append>
                     <q-btn color="grey" flat @click="loadDirectory" :loading="loading" icon="refresh" />
                   </template>
@@ -31,7 +31,7 @@
               </div>
               <div class="col-auto">
                 <q-btn unelevated class="full-height" @click="selectDirectory" color="primary" icon="folder"
-                  label="选择目录" />
+                       label="选择目录" />
               </div>
             </div>
 
@@ -46,7 +46,8 @@
           </q-card-section>
           <!-- 扫描进度区域 -->
           <q-linear-progress instant-feedback :value="filesAllLength > 0 ? files.length / filesAllLength : 0"
-            color="primary" size="25px" class="q-mt-sm">
+                             color="primary"
+                             size="25px" class="q-mt-sm">
             <div class="absolute-full flex flex-center">
               <q-badge color="white" text-color="primary" :label="files.length + '/' + filesAllLength" />
             </div>
@@ -73,43 +74,49 @@
           <q-separator />
 
           <q-card-section class="col">
-            <q-table ref="fileTable" :rows="files" :columns="columns" row-key="name" :rows-per-page-options="[0]" flat
-              class="full-height table-fixed">
-              <template v-slot:body-cell-name="props">
-                <q-td :props="props">
-                  <div class="q-pr-sm ellipsis cursor-help">
-                    <!-- 缩进根据深度调整 -->
-                    <!-- <div v-for="n in props.row.depth" :key="n" class="q-mr-md">-</div> -->
-                    <q-icon :name="props.row.is_directory ? 'folder' : 'image'" size="md"
-                      :color="props.row.is_directory ? 'yellow' : ''" class="q-mr-sm" />
-                    {{ getRelativePath(props.row.path) }}
-                    <!-- {{ props.row.name }} -->
-                  </div>
-                </q-td>
-              </template>
+            <q-virtual-scroll ref="fileList" :items="files" separator v-slot="{ item, index }"
+            type="table"                  
+            virtual-scroll-item-size="48"
+                              style="height:300px">
+              <q-item clickable class="file-item">
+                <q-item-section side>
+                  {{ index + 1 }}
+                </q-item-section>
+                <q-item-section avatar>
+                  <q-icon :name="item.is_directory ? 'folder' : 'image'" size="md"
+                          :color="item.is_directory ? 'yellow' : ''" />
+                </q-item-section>
 
-              <template v-slot:body-cell-size="props">
-                <q-td :props="props" class="text-right">
-                  <q-chip v-if="!props.row.is_directory" color="transparent" text-color="grey-6" size="sm" dense>
-                    {{ formatFileSize(props.row.size) }}
-                  </q-chip>
-                </q-td>
-              </template>
+                <q-item-section>
+                  <q-item-label class="ellipsis">
+                    {{ getRelativePath(item.path) }}
+                  </q-item-label>
+                </q-item-section>
 
-              <template v-slot:body-cell-modified="props">
-                <q-td :props="props" class="text-right">
-                  <div class="row items-center justify-end">
-                    <div v-if="props.row.modified > 0">
-                      <q-icon name="schedule" class="q-mr-sm" :color="props.row.is_directory ? 'yellow' : ''" />
-                      {{ formatTime(props.row.modified) }}
+                <q-item-section side v-if="!item.is_directory">
+                  <q-item-label caption>
+                    <q-chip color="transparent" text-color="grey-6" size="sm" dense>
+                      {{ formatFileSize(item.size) }}
+                    </q-chip>
+                  </q-item-label>
+                </q-item-section>
+
+                <q-item-section side>
+                  <q-item-label caption>
+                    <div class="row items-center justify-end">
+                      <div v-if="item.modified > 0">
+                        <q-icon name="schedule" class="q-mr-sm" :color="item.is_directory ? 'yellow' : ''" />
+                        {{ formatTime(item.modified) }}
+                      </div>
+                      <div v-else>
+                        --
+                      </div>
                     </div>
-                    <div v-else>
-                      --
-                    </div>
-                  </div>
-                </q-td>
-              </template>
-            </q-table>
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-separator v-if="index < files.length - 1" />
+            </q-virtual-scroll>
           </q-card-section>
         </q-card>
 
@@ -137,7 +144,8 @@
                 <!-- 批处理数量 -->
                 <div class="q-gutter-y-md">
                   <q-input v-model.number="config.batchSize" label="批处理数量" type="number" min="1" max="1000" step="10"
-                    dense outlined>
+                           dense
+                           outlined>
                     <template v-slot:append>
                       <span class="text-grey-6 q-ml-sm">每次处理的文件数量</span>
                     </template>
@@ -145,7 +153,7 @@
 
                   <!-- 扫描深度 -->
                   <q-input v-model.number="config.scanDepth" label="扫描深度" type="number" min="1" max="20" step="1" dense
-                    outlined>
+                           outlined>
                     <template v-slot:append>
                       <span class="text-grey-6 q-ml-sm">递归扫描的目录层级</span>
                     </template>
@@ -183,7 +191,7 @@
 </template>
 
 <script>
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 
 export default {
@@ -203,35 +211,7 @@ export default {
         scanDepth: 5,
         rootDirectory: 'C:/',
         dryRun: true
-      },
-      columns: [
-        {
-          name: 'name',
-          required: true,
-          label: '文件名',
-          align: 'left',
-          field: 'name',
-          sortable: true,
-          ellipsis: true,
-          // style: 'min-width: 300px'
-        },
-        {
-          name: 'size',
-          align: 'right',
-          label: '大小',
-          field: 'size',
-          sortable: true,
-          headerStyle: 'width: 10em'
-        },
-        {
-          name: 'modified',
-          align: 'right',
-          label: '修改时间',
-          field: 'modified',
-          sortable: true,
-          headerStyle: 'width: 15em'
-        }
-      ]
+      }
     }
   },
   mounted() {
@@ -302,10 +282,10 @@ export default {
           this.filesAllLength = event.payload.length
           const random = Math.random() * 100
           this.$q.notify({
-            type: 'negative',
-            message: `目录扫描完成，共找到 ${this.filesAllLength} 个文件 (${new Date().toLocaleString('zh-CN')})`,
-            color: 'negative',
-            multiLine: true,
+            type: 'info',
+            message: `目录扫描完成，共找到 ${this.filesAllLength} 个文件`,
+            group: false,
+            transitionHide: 'fade',
             position: 'bottom-right'
           })
         })
@@ -317,11 +297,9 @@ export default {
 
           // 使用nextTick确保DOM更新后再滚动
           this.$nextTick(() => {
-            // 获取表格的滚动容器
-            const scrollContainer = this.$refs.fileTable?.$el?.querySelector('.q-table__middle')
-            // 滚动到底部
-            if (scrollContainer) {
-              scrollContainer.scrollTop = scrollContainer.scrollHeight
+            // 获取虚拟滚动组件并滚动到底部
+            if (this.$refs.fileList) {
+              // this.$refs.fileList.scrollTo(this.files.length - 1)
             }
           })
         })
@@ -331,12 +309,21 @@ export default {
           this.loading = false
           // 扫描完成后显示通知
           this.$q.notify({
-            message: `目录分析完成，共找到 ${this.files.length} 个文件`,
-            color: 'positive',
-            multiLine: true,
-            position: 'bottom-right'
+            message: `目录分析完成，共处理 ${this.files.length} 个文件`,
+            type: 'positive',
+            group: false,
+            position: 'bottom-right',
+            progress: true,
+            timeout: 20000,
+            actions: [
+              { label: 'ok', color: 'white', handler: () => { /* ... */ } }
+            ]
           })
           // 清理事件监听器
+          if (this.scanReadyUnlisten) {
+            this.scanReadyUnlisten()
+            this.scanReadyUnlisten = null
+          }
           if (this.scanProgressUnlisten) {
             this.scanProgressUnlisten()
             this.scanProgressUnlisten = null

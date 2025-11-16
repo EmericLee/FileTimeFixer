@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "Default capability set for the application",
+  "windows": ["main"],
+  "permissions": [
+    "core:event:default",
+    "core:event:allow-listen",
+    "dialog:default",
+    "fs:default"
+  ]
+}

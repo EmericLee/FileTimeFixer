@@ -1,62 +1,15 @@
 {
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "File Time Fixer",
+  "version": "0.0.0",
+  "identifier": "com.filetimefixer",
   "build": {
     "beforeBuildCommand": "pnpm vite build",
     "beforeDevCommand": "pnpm vite",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist",
-    "withGlobalTauri": false 
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "File Time Fixer",
-    "version": "0.0.0"
-  },
-  "tauri": {
-    "systemTray": null,
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "fs": {
-        "all": true,
-        "readFile": true,
-        "writeFile": true,
-        "readDir": true,
-        "copyFile": true,
-        "createDir": true,
-        "removeDir": true,
-        "removeFile": true,
-        "renameFile": true,
-        "exists": true
-      },
-      "path": {
-        "all": true
-      },
-      "dialog": {
-        "all": true,
-        "open": true,
-        "save": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "identifier": "com.filetimefixer.app",
-      "category": "Utility",
-      "shortDescription": "A tool to fix file timestamps",
-      "longDescription": "File Time  Fixer is a desktop application that allows you to modify and fix file timestamps with ease.",
-      "targets": "all",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ]
-    },
-    "security": {
-      "csp": null
-    },
+  "app": {
     "windows": [
       {
         "fullscreen": false,
@@ -65,6 +18,23 @@
         "width": 1200,
         "height": 800
       }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "category": "Utility",
+    "shortDescription": "A tool to fix file timestamps",
+    "longDescription": "File Time Fixer is a desktop application that allows you to modify and fix file timestamps with ease.",
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
     ]
   }
 }
