@@ -250,11 +250,29 @@ export default {
 
     async selectDirectory() {
       try {
-        const selected = await invoke('select_directory')
-        if (selected) {
-          this.currentDirectory = selected
-          this.loadDirectory()
-        }
+        // 创建隐藏的文件输入元素
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.webkitdirectory = true
+        input.multiple = false
+        
+        // 监听文件选择事件
+        input.addEventListener('change', (event) => {
+          const files = event.target.files
+          if (files.length > 0) {
+            // 获取选择的文件夹路径
+            const folderPath = files[0].webkitRelativePath.split('/')[0]
+            // 由于浏览器安全限制，无法直接获取完整路径
+            // 使用文件夹名称作为当前目录
+            this.currentDirectory = folderPath
+            this.loadDirectory()
+          }
+          // 清理输入元素
+          input.remove()
+        })
+        
+        // 触发文件选择对话框
+        input.click()
       } catch (err) {
         this.error = '选择目录失败: ' + err
       }

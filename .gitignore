@@ -116,6 +116,7 @@ dist
 
 # Tauri specific
 src-tauri/target/
+src-tauri/gen/
 *.pdb
 *.exe
 *.dll
@@ -125,7 +126,6 @@ src-tauri/target/
 
 # Rust
 src-tauri/Cargo.lock
-src-tauri/target/
 src-tauri/**/*.rs.bk
 
 # IDE
@@ -148,3 +148,4 @@ Thumbs.db
 *.tmp
 *.temp
 
+src-tauri/gen/schemas/capabilities.json
