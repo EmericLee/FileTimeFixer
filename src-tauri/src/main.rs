@@ -4,7 +4,7 @@
 )]
 
 mod image_fixer;
-use image_fixer::{scan_directory, select_directory, demonstrate_emit_events};
+use image_fixer::{scan_directory, demonstrate_emit_events};
 
 fn main() {
     // 重定向标准错误到控制台
@@ -24,7 +24,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .invoke_handler(tauri::generate_handler![scan_directory, select_directory, demonstrate_emit_events])
+        .invoke_handler(tauri::generate_handler![scan_directory, demonstrate_emit_events])
         .run(tauri::generate_context!())
         .expect("运行Tauri应用程序时出错");
 }
