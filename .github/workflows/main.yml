@@ -23,6 +23,8 @@ jobs:
             args: ''
           - platform: 'windows-latest'
             args: ''
+          - platform: 'ubuntu-latest'
+            args: 'android build'
 
     runs-on: ${{ matrix.platform }}
     steps:
