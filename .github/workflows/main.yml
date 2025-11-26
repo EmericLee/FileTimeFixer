@@ -63,9 +63,9 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: install frontend dependencies
-        run: corepack enable # 启用 Corepack，它会自动识别并安装 package.json 中指定的 pnpm 版本
-        run: pnpm install --no-frozen-lockfile # change this to npm, pnpm or bun depending on which one you use.
-
+        run: |
+          corepack enable
+          pnpm install --no-frozen-lockfile
       # # ====================================================
       # # 3. 执行构建
       # # ====================================================
