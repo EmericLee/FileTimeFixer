@@ -48,7 +48,7 @@ jobs:
       - run: corepack enable # 启用 Corepack，它会自动识别并安装 package.json 中指定的 pnpm 版本
       
       - name: install frontend dependencies
-        run: pnpm install # change this to npm, pnpm or bun depending on which one you use.
+        run: pnpm install --no-frozen-lockfile # change this to npm, pnpm or bun depending on which one you use.
 
       - uses: tauri-apps/tauri-action@v0.6.0
         env:
