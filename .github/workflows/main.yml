@@ -24,7 +24,7 @@ jobs:
           - platform: "windows-latest"
             args: ""
           - platform: "ubuntu-latest"
-            is_mobile: true
+            mobile: "android"
             args: "" # 移动端不用 args，后面单独处理
 
     runs-on: ${{ matrix.platform }}
@@ -62,36 +62,35 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - run: corepack enable # 启用 Corepack，它会自动识别并安装 package.json 中指定的 pnpm 版本
-
       - name: install frontend dependencies
+        run: corepack enable # 启用 Corepack，它会自动识别并安装 package.json 中指定的 pnpm 版本
         run: pnpm install --no-frozen-lockfile # change this to npm, pnpm or bun depending on which one you use.
 
-      # ====================================================
-      # 3. 执行构建
-      # ====================================================
+      # # ====================================================
+      # # 3. 执行构建
+      # # ====================================================
 
-      # A. Android 手动构建 (避开 tauri-action 的 build 命令)
-      - name: Build Android
-        if: matrix.is_mobile
-        run: |
-          pnpm tauri android init
-          # 使用指定的 key 签名（如果有），或者直接 build debug 包
-          pnpm tauri android build 
-      - name: Upload Android APK to Release
-        if: matrix.is_mobile
-        uses: softprops/action-gh-release@v1
-        with:
-          # 必须和上面 tauri-action 的 tag 保持一致的策略，或者使用 GitHub 自动的 ref
-          tag_name: ${{ github.ref_name }} 
-          files: |
-            src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk
-            src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # # A. Android 手动构建 (避开 tauri-action 的 build 命令)
+      # - name: Build Android
+      #   if: matrix.is_mobile
+      #   run: |
+      #     pnpm tauri android init
+      #     # 使用指定的 key 签名（如果有），或者直接 build debug 包
+      #     pnpm tauri android build 
+      # - name: Upload Android APK to Release
+      #   if: matrix.is_mobile
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     # 必须和上面 tauri-action 的 tag 保持一致的策略，或者使用 GitHub 自动的 ref
+      #     tag_name: ${{ github.ref_name }} 
+      #     files: |
+      #       src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk
+      #       src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Desktop
-        if: ${{ !matrix.is_mobile }}
+        # if: ${{ !matrix.is_mobile }}
         uses: tauri-apps/tauri-action@v0.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -101,4 +100,5 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
+          mobile: ${{ matrix.mobile }}
           args: ${{ matrix.args }}
