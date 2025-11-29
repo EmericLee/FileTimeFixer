@@ -112,8 +112,8 @@ jobs:
           tagName: App-v${{ steps.version.outputs.version }}
           releaseName: "App v${{ steps.version.outputs.version }}"
           releaseBody: "See the assets to download this version and install."
-          releaseDraft: true
-          prerelease: false
+          # releaseDraft: true
+          # prerelease: false
           # mobile: ${{ matrix.mobile }}
           args: ${{ matrix.args }}
 
@@ -146,6 +146,12 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: pnpm install
+        # 不需要 --target，因为 Runner 本身就是 ARM64
+        run: |
+          corepack enable
+          pnpm install --no-frozen-lockfile
 
       - name: Build Desktop & auto upload to release
         uses: tauri-apps/tauri-action@v0.6.0
