@@ -8,7 +8,7 @@ on:
 # This workflow will trigger on each push to the `release` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
 
 jobs:
-  publish-tauri:
+  publish-desktop:
     permissions:
       contents: write
     strategy:
@@ -19,8 +19,9 @@ jobs:
           #   args: '--target aarch64-apple-darwin'
           # - platform: 'macos-latest' # for Intel based macs.
           #   args: '--target x86_64-apple-darwin'
-          - platform: "ubuntu-22.04"
-            args: ""
+          
+          # - platform: "ubuntu-22.04"
+          #   args: ""
           - platform: "windows-latest"
             args: ""
           - platform: "ubuntu-latest"
@@ -35,6 +36,7 @@ jobs:
       # app-v${{ steps.version.outputs.version }}
       - name: Extract version
         id: version
+        shell: bash
         run: |
           VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -91,8 +93,8 @@ jobs:
         if: matrix.is_mobile
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: app-v${{ steps.version.outputs.version }}
-          release_name: "App v${{ steps.version.outputs.version }}"
+          tagName: app-v${{ steps.version.outputs.version }}
+          releaseName: "App v${{ steps.version.outputs.version }}"
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
             src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
@@ -107,10 +109,76 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          tag_name: app-v${{ steps.version.outputs.version }}
-          release_name: "App v${{ steps.version.outputs.version }}"
+          tagName: app-v${{ steps.version.outputs.version }}
+          releaseName: "App v${{ steps.version.outputs.version }}"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
           # mobile: ${{ matrix.mobile }}
+          args: ${{ matrix.args }}
+
+
+  publish-arm64:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "ubuntu-22.04"
+            args: '--target aarch64-unknown-linux-gnu'
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # 首先提取版本号
+      # app-v${{ steps.version.outputs.version }}
+      - name: Extract version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # ====================================================
+      # 1. 环境配置
+      # ====================================================
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu 
+          sudo apt-get install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross 
+          sudo apt-get install -y libwebkit2gtk-4.1-dev:arm64 libappindicator3-dev:arm64 librsvg2-dev:arm64
+      
+      - name: install frontend dependencies
+        run: |
+          corepack enable
+          pnpm install --no-frozen-lockfile
+
+      # # ====================================================
+      # # 2. 执行构建
+      # # ====================================================
+
+      - name: Build Desktop & auto upload to release
+        uses: tauri-apps/tauri-action@v0.6.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          tagName: app-v${{ steps.version.outputs.version }}
+          releaseName: "App v${{ steps.version.outputs.version }}"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true
+          prerelease: false
           args: ${{ matrix.args }}
