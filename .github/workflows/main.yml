@@ -1,37 +1,51 @@
-name: 'publish'
+name: "Release Build"
 
 on:
   push:
-    branches:
-      - release
-
-# This workflow will trigger on each push to the `release` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
+    tags:
+      - "v*.*.*"  # ${{ github.ref_name }} 必须是 v 开头的标签，例如 v0.0.1
 
 jobs:
-  publish-tauri:
+  publish-desktop:
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
-            args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
-            args: '--target x86_64-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            args: ''
-          - platform: 'windows-latest'
-            args: ''
+          # - platform: 'macos-latest' # for Arm based macs (M1 and above).
+          #   args: '--target aarch64-apple-darwin'
+          # - platform: 'macos-latest' # for Intel based macs.
+          #   args: '--target x86_64-apple-darwin'
+
+          - platform: "windows-latest"
+            args: ""
+          # - platform: "ubuntu-22.04"
+          #   args: ""
+          - platform: "ubuntu-24.04-arm"
+            args: ""
+          - platform: "ubuntu-latest"
+            is_mobile: "android"
+            args: "" # 移动端不用 args，后面单独处理
 
     runs-on: ${{ matrix.platform }}
+
     steps:
+
       - uses: actions/checkout@v4
 
+      # ====================================================
+      # 通用环境配置
+      # ====================================================
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: install frontend dependencies
+        run: |
+          corepack enable
+          pnpm install --no-frozen-lockfile
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -39,24 +53,63 @@ jobs:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
+      # ====================================================
+      # ubuntu 环境配置
+      # ====================================================
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        if: startsWith(matrix.platform, 'ubuntu') # This will match all Ubuntu platforms, including ubuntu-22.04, ubuntu-24.04, ubuntu-latest, etc.
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - run: corepack enable # 启用 Corepack，它会自动识别并安装 package.json 中指定的 pnpm 版本
-      
-      - name: install frontend dependencies
-        run: pnpm install # change this to npm, pnpm or bun depending on which one you use.
-
-      - uses: tauri-apps/tauri-action@v0.6.0
+      # ====================================================
+      # 标准构建
+      # ====================================================          
+      # Desktop 自动 构建 (避开 tauri-action 的 build 命令)
+      - name: Build Desktop & auto upload to release
+        if: ${{ !matrix.is_mobile }}
+        uses: tauri-apps/tauri-action@v0.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
-          prerelease: false
+          #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          tagName: App-v${{ github.ref_name }}
+          releaseName: "App v${{ github.ref_name }}"
+          # releaseDraft: true
+          # prerelease: false
+          # mobile: ${{ matrix.mobile }}
           args: ${{ matrix.args }}
+
+      # ====================================================
+      # Android 构建
+      # ====================================================
+      - name: Setup Java (Android only)
+        if: matrix.is_mobile
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          
+      - name: Setup Android SDK
+        if: matrix.is_mobile
+        uses: android-actions/setup-android@v3
+
+      - name: Build Android
+        if: matrix.is_mobile
+        run: |
+          pnpm tauri android init
+          # 使用指定的 key 签名（如果有），或者直接 build debug 包
+          pnpm tauri android build
+
+      - name: Upload Android APK to Release
+        if: matrix.is_mobile
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: App-v${{ github.ref_name }}
+          name: "App v${{ github.ref_name }}"
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+            src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
+

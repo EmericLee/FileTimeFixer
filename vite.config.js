@@ -25,6 +25,7 @@ export default defineConfig(async () => ({
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
     port: 1420,
+    host: '0.0.0.0', // 监听所有网络接口，确保Tauri可以正确连接
     strictPort: true,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
@@ -38,7 +39,7 @@ export default defineConfig(async () => ({
     assetsDir: 'assets',
     sourcemap: true, // 启用源映射以便更好地调试
     minify: 'esbuild',
-    target: 'esnext'
+    target: 'es2020'
   },
 
   // 优化依赖

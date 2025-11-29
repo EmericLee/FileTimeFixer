@@ -5,7 +5,11 @@
   "permissions": [
     "core:event:default",
     "core:event:allow-listen",
+    "core:event:allow-emit",
     "dialog:default",
-    "fs:default"
+    "fs:default",
+    "fs:allow-read-file",
+    "fs:allow-read-dir",
+    "fs:allow-write-file"
   ]
 }

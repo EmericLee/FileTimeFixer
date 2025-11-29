@@ -254,22 +254,17 @@ async fn collect_files(directory: String, current_depth: u64) -> Result<Vec<File
     Ok(files)
 }
 
-#[tauri::command]
-pub async fn select_directory(app_handle: AppHandle) -> Result<String, String> {
-    use tauri_plugin_dialog::DialogExt;
+// #[tauri::command]
+// pub async fn select_directory(app_handle: AppHandle) -> Result<String, String> {
+//     // 在Tauri 2.0中，使用简单的文件选择API
+//     use tauri_plugin_dialog::DialogExt;
     
-    let (tx, rx) = tokio::sync::oneshot::channel();
-    
-    app_handle.dialog().file().pick_folder(move |path| {
-        let _ = tx.send(path);
-    });
-    
-    match rx.await {
-        Ok(Some(path)) => Ok(path.to_string()),
-        Ok(None) => Err("用户取消选择".to_string()),
-        Err(_) => Err("等待选择结果时出错".to_string()),
-    }
-}
+//     // 直接使用pick_folder方法选择文件夹
+//     match app_handle.dialog().pick_folder().await {
+//         Some(path) => Ok(path.to_string()),
+//         None => Err("用户取消选择".to_string()),
+//     }
+// }
 
 // 示例：发送带有不同数据类型的事件
 #[tauri::command]

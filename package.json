@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@10.24.0",
   "scripts": {
     "build": "tauri build",
     "build:web": "vite build",
@@ -14,13 +14,13 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
-    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/api": "^2.9.0",
     "quasar": "^2.14.2",
     "vue": "^3.3.4"
   },
   "devDependencies": {
     "@quasar/vite-plugin": "^1.6.0",
-    "@tauri-apps/cli": "^2.0.0",
+    "@tauri-apps/cli": "^2.9.4",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/devtools-api": "^8.0.3",
     "concurrently": "^9.2.1",
