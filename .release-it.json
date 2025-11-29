@@ -1,8 +1,14 @@
 {
   "plugins": {
     "@release-it/bumper": {
-      "in": "tauri.conf.json",
-      "out": "tauri.conf.json"
+      "in": [
+        "src-tauri/tauri.conf.json",
+        "src-tauri/Cargo.toml"
+      ],
+      "out": [
+        "src-tauri/tauri.conf.json",
+        "src-tauri/Cargo.toml"
+      ]
     }
   }
 }
