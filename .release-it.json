@@ -1,13 +1,36 @@
 {
+  "git": {
+    "commitMessage": "Release v${version}",
+    "requireCleanWorkingDir": false
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "release": false
+  },
   "plugins": {
     "@release-it/bumper": {
-      "in": [
-        "src-tauri/tauri.conf.json",
-        "src-tauri/Cargo.toml"
-      ],
       "out": [
-        "src-tauri/tauri.conf.json",
-        "src-tauri/Cargo.toml"
+        {
+          "file": "src-tauri/tauri.conf.json",
+          "path": "version"
+        },
+        {
+          "file": "src-tauri/Cargo.toml",
+          "search": "version = \".*\"",
+          "replace": "version = \"{{version}}\""
+        },
+        {
+          "file": "README.md",
+          "search": "Current Version: .*",
+          "replace": "Current Version: {{version}}"
+        },
+        {
+          "file": "test.txt",
+          "search": "version: .*",
+          "replace": "version:  {{version}}"
+        }
       ]
     }
   }

@@ -1,5 +1,7 @@
 # File Time Fixer
 
+Current Version: 0.0.60
+
 一个基于Tauri和Vue.js的桌面应用程序，用于查看和修复文件的时间戳信息，特别是图片的EXIF拍摄时间。
 
 ## 功能特性

@@ -1,9 +1,9 @@
 [package]
 name = "file-time-fixer"
-version = "0.0.0"
 description = "A Tauri application for fixing file timestamps"
+version = "0.0.60"
 authors = ["You"]
-license = ""
+license = "C Emeric"
 repository = ""
 default-run = "file-time-fixer"
 edition = "2021"
