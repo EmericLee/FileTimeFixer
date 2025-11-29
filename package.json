@@ -1,7 +1,7 @@
 {
   "name": "file-time-fixer",
   "private": true,
-  "version": "0.0.60",
+  "version": "0.0.61",
   "type": "module",
   "packageManager": "pnpm@10.24.0",
   "scripts": {
@@ -10,7 +10,8 @@
     "dev": "tauri dev",
     "dev:web": "vite",
     "preview": "vite preview",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "release:commit": " pnpm release-it  "
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
