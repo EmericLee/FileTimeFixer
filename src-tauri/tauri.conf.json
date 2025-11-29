@@ -6,7 +6,7 @@
   "build": {
     "beforeBuildCommand": "pnpm vite build",
     "beforeDevCommand": "pnpm vite",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://192.168.100.50:1420",
     "frontendDist": "../dist"
   },
   "app": {

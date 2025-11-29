@@ -39,7 +39,7 @@ export default defineConfig(async () => ({
     assetsDir: 'assets',
     sourcemap: true, // 启用源映射以便更好地调试
     minify: 'esbuild',
-    target: 'esnext'
+    target: 'es2020'
   },
 
   // 优化依赖
