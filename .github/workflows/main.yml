@@ -1,11 +1,9 @@
-name: "publish"
+name: "Release Build"
 
 on:
   push:
-    branches:
-      - release
-
-# This workflow will trigger on each push to the `release` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
+    tags:
+      - "v*.*.*"  # ${{ github.ref_name }} 必须是 v 开头的标签，例如 v0.0.1
 
 jobs:
   publish-desktop:
@@ -22,32 +20,31 @@ jobs:
 
           # - platform: "ubuntu-22.04"
           #   args: ""
+          - platform: "ubuntu-24.04-arm"
+            args: ""
           - platform: "windows-latest"
             args: ""
           - platform: "ubuntu-latest"
             is_mobile: "android"
             args: "" # 移动端不用 args，后面单独处理
-
     runs-on: ${{ matrix.platform }}
+
     steps:
+
       - uses: actions/checkout@v4
 
-      # 首先提取版本号
-      # app-v${{ steps.version.outputs.version }}
-      - name: Extract version
-        id: version
-        shell: bash
-        run: |
-          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       # ====================================================
-      # 1. 环境配置
+      # 通用环境配置
       # ====================================================
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: install frontend dependencies
+        run: |
+          corepack enable
+          pnpm install --no-frozen-lockfile
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -55,33 +52,45 @@ jobs:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
+      # ====================================================
+      # ubuntu 环境配置
+      # ====================================================
+      - name: install dependencies (ubuntu only)
+        if: startsWith(matrix.platform, 'ubuntu') # This will match all Ubuntu platforms, including ubuntu-22.04, ubuntu-24.04, ubuntu-latest, etc.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      # ====================================================
+      # 标准构建
+      # ====================================================          
+      # Desktop 自动 构建 (避开 tauri-action 的 build 命令)
+      - name: Build Desktop & auto upload to release
+        if: ${{ !matrix.is_mobile }}
+        uses: tauri-apps/tauri-action@v0.6.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          tagName: App-v${{ github.ref_name }}
+          releaseName: "App v${{ github.ref_name }}"
+          releaseBody: "See the assets to download this version and install."
+          # releaseDraft: true
+          # prerelease: false
+          # mobile: ${{ matrix.mobile }}
+          args: ${{ matrix.args }}
+
+      # ====================================================
+      # Android 构建
+      # ====================================================
       - name: Setup Java (Android only)
         if: matrix.is_mobile
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
-
-      - name: Setup Android SDK (Android only)
-        if: matrix.is_mobile
         uses: android-actions/setup-android@v3
 
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: install frontend dependencies
-        run: |
-          corepack enable
-          pnpm install --no-frozen-lockfile
-
-      # # ====================================================
-      # # 2. 执行构建
-      # # ====================================================
-
-      # # A. Android 手动构建 (避开 tauri-action 的 build 命令)
       - name: Build Android
         if: matrix.is_mobile
         run: |
@@ -93,74 +102,11 @@ jobs:
         if: matrix.is_mobile
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: App-v${{ steps.version.outputs.version }}
-          name: "App v${{ steps.version.outputs.version }}"
+          tag_name: App-v${{ github.ref_name }}
+          name: "App v${{ github.ref_name }}"
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
             src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
 
-      # # B. Desktop 自动 构建 (避开 tauri-action 的 build 命令)
-      - name: Build Desktop & auto upload to release
-        if: ${{ !matrix.is_mobile }}
-        uses: tauri-apps/tauri-action@v0.6.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          tagName: App-v${{ steps.version.outputs.version }}
-          releaseName: "App v${{ steps.version.outputs.version }}"
-          releaseBody: "See the assets to download this version and install."
-          # releaseDraft: true
-          # prerelease: false
-          # mobile: ${{ matrix.mobile }}
-          args: ${{ matrix.args }}
-
-  build-arm-linux:
-    # 关键点：使用 ARM 架构的 Runner
-    # 注意：截至 2025，这可能是 'ubuntu-24.04-arm' 或类似标签
-    runs-on: ubuntu-24.04-arm
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Dependencies
-        # 直接像普通 Ubuntu 一样安装，不需要指定 :arm64
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libssl-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: pnpm install
-        # 不需要 --target，因为 Runner 本身就是 ARM64
-        run: |
-          corepack enable
-          pnpm install --no-frozen-lockfile
-
-      - name: Build Desktop & auto upload to release
-        uses: tauri-apps/tauri-action@v0.6.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          tagName: App-v__VERSION__
-          releaseName: "App v__VERSION__"
-          # releaseDraft: true
-          # prerelease: false
-          # args: ${{ matrix.args }}
