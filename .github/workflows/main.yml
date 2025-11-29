@@ -19,7 +19,7 @@ jobs:
           #   args: '--target aarch64-apple-darwin'
           # - platform: 'macos-latest' # for Intel based macs.
           #   args: '--target x86_64-apple-darwin'
-          
+
           # - platform: "ubuntu-22.04"
           #   args: ""
           - platform: "windows-latest"
@@ -93,7 +93,7 @@ jobs:
         if: matrix.is_mobile
         uses: softprops/action-gh-release@v1
         with:
-          tagName: app-v${{ steps.version.outputs.version }}
+          tagName: App-v${{ steps.version.outputs.version }}
           releaseName: "App v${{ steps.version.outputs.version }}"
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
@@ -109,7 +109,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          tagName: app-v${{ steps.version.outputs.version }}
+          tagName: App-v${{ steps.version.outputs.version }}
           releaseName: "App v${{ steps.version.outputs.version }}"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
@@ -155,11 +155,29 @@ jobs:
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
         run: |
+          # 更新包列表
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu 
-          sudo apt-get install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross 
-          sudo apt-get install -y libwebkit2gtk-4.1-dev:arm64 libappindicator3-dev:arm64 librsvg2-dev:arm64
+          
+          # 安装交叉编译所需的ARM64系统库
+          sudo apt-get install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross
+          
+          # 启用ARM64架构支持
+          sudo dpkg --add-architecture arm64
+          
+          # 更新包列表以包含ARM64仓库
+          sudo apt-get update
+          
+          # 安装ARM64版本的依赖库（可选，实际交叉编译时可能不需要）
+          # 注意：某些包可能在Ubuntu 22.04的ARM64仓库中不可用或有不同的名称
+          # sudo apt-get install -y --no-install-recommends \
+          #   libwebkit2gtk-4.0-dev:arm64 \
+          #   libgtk-3-dev:arm64 \
+          #   libgdk-pixbuf2.0-dev:arm64 \
+          #   libpango1.0-dev:arm64 \
+          #   libatk1.0-dev:arm64 \
+          #   librsvg2-dev:arm64 || echo "Some ARM64 packages not found, continuing anyway"
       
       - name: install frontend dependencies
         run: |
@@ -176,7 +194,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          tagName: app-v${{ steps.version.outputs.version }}
+          tagName: App-v${{ steps.version.outputs.version }}
           releaseName: "App v${{ steps.version.outputs.version }}"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
