@@ -89,6 +89,9 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
+          
+      - name: Setup Android SDK
+        if: matrix.is_mobile
         uses: android-actions/setup-android@v3
 
       - name: Build Android
