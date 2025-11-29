@@ -87,7 +87,7 @@ jobs:
         run: |
           pnpm tauri android init
           # 使用指定的 key 签名（如果有），或者直接 build debug 包
-          pnpm tauri android build 
+          pnpm tauri android build
 
       - name: Upload Android APK to Release
         if: matrix.is_mobile
@@ -117,79 +117,35 @@ jobs:
           # mobile: ${{ matrix.mobile }}
           args: ${{ matrix.args }}
 
+  build-arm-linux:
+    # 关键点：使用 ARM 架构的 Runner
+    # 注意：截至 2025，这可能是 'ubuntu-24.04-arm' 或类似标签
+    runs-on: ubuntu-24.04-arm
 
-  publish-arm64:
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: "ubuntu-22.04"
-            args: '--target aarch64-unknown-linux-gnu'
-
-    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
-      # 首先提取版本号
-      # app-v${{ steps.version.outputs.version }}
-      - name: Extract version
-        id: version
-        shell: bash
+      - name: Install Dependencies
+        # 直接像普通 Ubuntu 一样安装，不需要指定 :arm64
         run: |
-          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
 
-      # ====================================================
-      # 1. 环境配置
-      # ====================================================
-      - name: setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: "20"
 
-      - name: install Rust stable
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: "aarch64-unknown-linux-gnu"
-        #rustup target add aarch64-unknown-linux-gnu
-
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
-        run: |
-          # 更新包列表
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu 
-          
-          # 安装交叉编译所需的ARM64系统库
-          sudo apt-get install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross
-          
-          # # 启用ARM64架构支持
-          # sudo dpkg --add-architecture arm64
-          
-          # # 更新包列表以包含ARM64仓库
-          # sudo apt-get update
-          
-          # 安装ARM64版本的依赖库（可选，实际交叉编译时可能不需要）
-          # 注意：某些包可能在Ubuntu 22.04的ARM64仓库中不可用或有不同的名称
-          # sudo apt-get install -y --no-install-recommends \
-          #   libwebkit2gtk-4.0-dev:arm64 \
-          #   libgtk-3-dev:arm64 \
-          #   libgdk-pixbuf2.0-dev:arm64 \
-          #   libpango1.0-dev:arm64 \
-          #   libatk1.0-dev:arm64 \
-          #   librsvg2-dev:arm64 || echo "Some ARM64 packages not found, continuing anyway"
-      
-      - name: install frontend dependencies
-        run: |
-          corepack enable
-          pnpm install --no-frozen-lockfile
-
-      # # ====================================================
-      # # 2. 执行构建
-      # # ====================================================
 
       - name: Build Desktop & auto upload to release
         uses: tauri-apps/tauri-action@v0.6.0
@@ -197,9 +153,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          tagName: App-v${{ steps.version.outputs.version }}
-          releaseName: "App v${{ steps.version.outputs.version }}"
-          releaseBody: "See the assets to download this version and install."
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+          tagName: App-v__VERSION__
+          releaseName: "App v__VERSION__"
+          # releaseDraft: true
+          # prerelease: false
+          # args: ${{ matrix.args }}
