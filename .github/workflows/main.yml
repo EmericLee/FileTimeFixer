@@ -18,15 +18,16 @@ jobs:
           # - platform: 'macos-latest' # for Intel based macs.
           #   args: '--target x86_64-apple-darwin'
 
+          - platform: "windows-latest"
+            args: ""
           # - platform: "ubuntu-22.04"
           #   args: ""
           - platform: "ubuntu-24.04-arm"
             args: ""
-          - platform: "windows-latest"
-            args: ""
           - platform: "ubuntu-latest"
             is_mobile: "android"
             args: "" # 移动端不用 args，后面单独处理
+
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -74,7 +75,6 @@ jobs:
           #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           tagName: App-v${{ github.ref_name }}
           releaseName: "App v${{ github.ref_name }}"
-          releaseBody: "See the assets to download this version and install."
           # releaseDraft: true
           # prerelease: false
           # mobile: ${{ matrix.mobile }}
