@@ -20,10 +20,12 @@
   },
   "devDependencies": {
     "@quasar/vite-plugin": "^1.6.0",
+    "@release-it/bumper": "^7.0.5",
     "@tauri-apps/cli": "^2.9.4",
     "@vitejs/plugin-vue": "^4.2.3",
     "@vue/devtools-api": "^8.0.3",
     "concurrently": "^9.2.1",
+    "release-it": "^19.0.6",
     "sass": "1.32.12",
     "unplugin-auto-import": "^20.2.0",
     "unplugin-vue-components": "^30.0.0",

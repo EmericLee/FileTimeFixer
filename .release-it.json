@@ -1,0 +1,8 @@
+{
+  "plugins": {
+    "@release-it/bumper": {
+      "in": "tauri.conf.json",
+      "out": "tauri.conf.json"
+    }
+  }
+}
