@@ -17,11 +17,10 @@ jobs:
           #   args: '--target aarch64-apple-darwin'
           # - platform: 'macos-latest' # for Intel based macs.
           #   args: '--target x86_64-apple-darwin'
-
           - platform: "windows-latest"
             args: ""
-          # - platform: "ubuntu-22.04"
-          #   args: ""
+          - platform: "ubuntu-22.04"
+            args: ""
           - platform: "ubuntu-24.04-arm"
             args: ""
           - platform: "ubuntu-latest"
@@ -73,8 +72,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          tagName: App-v${{ github.ref_name }}
-          releaseName: "App v${{ github.ref_name }}"
+          tagName: ${{ github.ref_name }}
+          # releaseName: "App v${{ github.ref_name }}"
           # releaseDraft: true
           # prerelease: false
           # mobile: ${{ matrix.mobile }}
@@ -105,11 +104,12 @@ jobs:
         if: matrix.is_mobile
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: App-v${{ github.ref_name }}
-          name: "App v${{ github.ref_name }}"
+          tag_name: ${{ github.ref_name }}
+          # name: "App v${{ github.ref_name }}"
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
-            src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab
+          # src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
 
