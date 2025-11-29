@@ -24,7 +24,7 @@ jobs:
           - platform: "windows-latest"
             args: ""
           - platform: "ubuntu-latest"
-            mobile: "android"
+            is_mobile: "android"
             args: "" # 移动端不用 args，后面单独处理
 
     runs-on: ${{ matrix.platform }}
@@ -71,26 +71,27 @@ jobs:
       # # ====================================================
 
       # # A. Android 手动构建 (避开 tauri-action 的 build 命令)
-      # - name: Build Android
-      #   if: matrix.is_mobile
-      #   run: |
-      #     pnpm tauri android init
-      #     # 使用指定的 key 签名（如果有），或者直接 build debug 包
-      #     pnpm tauri android build 
-      # - name: Upload Android APK to Release
-      #   if: matrix.is_mobile
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     # 必须和上面 tauri-action 的 tag 保持一致的策略，或者使用 GitHub 自动的 ref
-      #     tag_name: ${{ github.ref_name }} 
-      #     files: |
-      #       src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk
-      #       src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Android
+        if: matrix.is_mobile
+        run: |
+          pnpm tauri android init
+          # 使用指定的 key 签名（如果有），或者直接 build debug 包
+          pnpm tauri android build 
+      - name: Upload Android APK to Release
+        if: matrix.is_mobile
+        uses: softprops/action-gh-release@v1
+        with:
+          # 必须和上面 tauri-action 的 tag 保持一致的策略，或者使用 GitHub 自动的 ref
+          tag_name: ${{ github.ref_name }} 
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk
+            src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # # B. Desktop 自动 构建 (避开 tauri-action 的 build 命令)
       - name: Build Desktop
-        # if: ${{ !matrix.is_mobile }}
+        if: ${{ !matrix.is_mobile }}
         uses: tauri-apps/tauri-action@v0.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,5 +101,5 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
-          mobile: ${{ matrix.mobile }}
+          # mobile: ${{ matrix.mobile }}
           args: ${{ matrix.args }}
