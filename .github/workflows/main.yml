@@ -31,6 +31,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 首先提取版本号
+      # app-v${{ steps.version.outputs.version }}
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # ====================================================
+      # 1. 环境配置
+      # ====================================================
       - name: setup node
         uses: actions/setup-node@v4
         with:
@@ -42,9 +53,6 @@ jobs:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      # ====================================================
-      # 1. Android 专属环境配置
-      # ====================================================
       - name: Setup Java (Android only)
         if: matrix.is_mobile
         uses: actions/setup-java@v4
@@ -66,8 +74,9 @@ jobs:
         run: |
           corepack enable
           pnpm install --no-frozen-lockfile
+
       # # ====================================================
-      # # 3. 执行构建
+      # # 2. 执行构建
       # # ====================================================
 
       # # A. Android 手动构建 (避开 tauri-action 的 build 命令)
@@ -77,27 +86,29 @@ jobs:
           pnpm tauri android init
           # 使用指定的 key 签名（如果有），或者直接 build debug 包
           pnpm tauri android build 
+
       - name: Upload Android APK to Release
         if: matrix.is_mobile
         uses: softprops/action-gh-release@v1
         with:
-          # 必须和上面 tauri-action 的 tag 保持一致的策略，或者使用 GitHub 自动的 ref
-          tag_name: ${{ github.ref_name }} 
+          tag_name: app-v${{ steps.version.outputs.version }}
+          release_name: "App v${{ steps.version.outputs.version }}"
           files: |
-            src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk
-            src-tauri/gen/android/app/build/outputs/apk/release/app-release.apk
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+            src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # # B. Desktop 自动 构建 (避开 tauri-action 的 build 命令)
-      - name: Build Desktop
+      - name: Build Desktop & auto upload to release
         if: ${{ !matrix.is_mobile }}
         uses: tauri-apps/tauri-action@v0.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: "App v__VERSION__"
+          #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          tag_name: app-v${{ steps.version.outputs.version }}
+          release_name: "App v${{ steps.version.outputs.version }}"
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
