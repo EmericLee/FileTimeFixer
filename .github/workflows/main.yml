@@ -109,7 +109,7 @@ jobs:
           export TAURI_ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
           pnpm tauri android init
           # 使用指定的 key 签名（如果有），或者直接 build debug 包
-          pnpm tauri android build --release
+          pnpm tauri android build
 
       - name: Upload Android APK to Release
         if: matrix.is_mobile
