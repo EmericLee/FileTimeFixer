@@ -74,6 +74,7 @@ jobs:
           #tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           tagName: ${{ github.ref_name }}
           releaseName: "Release ${{ github.ref_name }}"
+          # generateReleaseNotes: true
           # releaseDraft: true
           # prerelease: false
           # mobile: ${{ matrix.mobile }}
