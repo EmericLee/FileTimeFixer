@@ -95,6 +95,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Restore Keystore from Base64
+        if: matrix.is_mobile
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > emi-app.jks
         env:
@@ -106,10 +107,9 @@ jobs:
           export TAURI_ANDROID_KEYSTORE_PATH=$PWD/emi-app.jks
           export TAURI_ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           export TAURI_ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
-          
           pnpm tauri android init
           # 使用指定的 key 签名（如果有），或者直接 build debug 包
-          pnpm tauri android build
+          pnpm tauri android build --release
 
       - name: Upload Android APK to Release
         if: matrix.is_mobile
@@ -121,6 +121,7 @@ jobs:
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab
+            src-tauri/gen/android/app/build/outputs/**/release/*release.*
           # src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}          
