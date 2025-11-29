@@ -127,6 +127,7 @@ src-tauri/target/
 src-tauri/Cargo.lock
 src-tauri/target/
 src-tauri/**/*.rs.bk
+src-tauri/gen/
 
 # IDE
 .vscode/
