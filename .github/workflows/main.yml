@@ -114,12 +114,12 @@ jobs:
 
       - name: Build Android
         if: matrix.is_mobile
-        # pnpm tauri android init
         run: |
           export TAURI_ANDROID_KEYSTORE_PATH=$PWD/emi-app.jks
           export TAURI_ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           export TAURI_ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
-          pnpm tauri android build -- --release
+          pnpm tauri android init
+          pnpm tauri android build
 
       - name: Upload Android APK to Release
         if: matrix.is_mobile
