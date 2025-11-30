@@ -1,7 +1,7 @@
 {
   "name": "file-time-fixer",
   "private": true,
-  "version": "0.0.70",
+  "version": "0.0.71",
   "type": "module",
   "packageManager": "pnpm@10.24.0",
   "scripts": {
