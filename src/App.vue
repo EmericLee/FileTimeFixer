@@ -432,7 +432,12 @@ export default {
     // 选择根目录
     async selectRootDirectory() {
       try {
-        const selected = await invoke('select_directory');
+        const { open } = await import('@tauri-apps/plugin-dialog');
+        const selected = await open({
+          directory: true,
+          multiple: false,
+          title: '选择根目录'
+        });
         if (selected) {
           this.config.rootDirectory = selected;
         }

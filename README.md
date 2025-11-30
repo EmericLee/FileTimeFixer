@@ -1,6 +1,6 @@
 # File Time Fixer (tauri 2.0 example)
 
-Current Version: v0.1.0
+Current Version: v0.1.1
 
 一个基于Tauri和Vue.js的桌面应用程序，用于查看和修复文件的时间戳信息，特别是图片的EXIF拍摄时间。
 同时：这也是一个利用tauri框架进行跨平台开发的技术验证范例。
@@ -21,15 +21,13 @@ Current Version: v0.1.0
 - 配置CI/CD流程，由标签`v.0.0.0`触发，自动构建linux、linux-arm、WindowsX64、android universal 输出（.github\workflows\main.yml）
 - 配置自动发布到GitHub Releases，包括生成Release Notes（.github\workflows\main.yml）
 - 配置Android应用签名，支持github action 直接分发、本地构建 see `github secrets` `src-tauri\signs` `src-tauri\gen\android\app\build.gradle.kts`
-- 配置android环境，通过测试运行。
-
-## 安装和运行
+- 配置android环境、入口，测试运行。
 
 ### 前提条件
 
 - Node.js (推荐v16+)
 - Rust (推荐1.60+)
-- npm或yarn
+- pnpm或yarn
 
 ### 开发环境设置
 
@@ -110,7 +108,7 @@ FileTimeFixer/
 
 ## 更新日志
 
-### v0.1.0 (初始版本)
+### v0.1.1 (初始版本)
 - 基本的文件浏览功能
 - 文件信息显示（大小、修改时间）
 - EXIF数据读取功能

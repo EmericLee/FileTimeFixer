@@ -1,7 +1,7 @@
 {
   "name": "file-time-fixer",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "packageManager": "pnpm@10.24.0",
   "scripts": {
@@ -16,6 +16,7 @@
   "dependencies": {
     "@quasar/extras": "^1.17.0",
     "@tauri-apps/api": "^2.9.0",
+    "@tauri-apps/plugin-dialog": "^2.4.2",
     "quasar": "^2.14.2",
     "vue": "^3.3.4"
   },

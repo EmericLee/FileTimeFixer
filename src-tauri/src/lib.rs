@@ -32,7 +32,7 @@ pub fn run() {
 }
 
 // 导出image_fixer模块中的函数供其他模块使用
-pub use image_fixer::{scan_directory, demonstrate_emit_events};
+pub use image_fixer::{scan_directory, select_directory, demonstrate_emit_events};
 
 // 导出共享函数供main.rs使用
 // 移除对 build_and_run_app 的 pub(crate) use，避免与 run 函数冲突
