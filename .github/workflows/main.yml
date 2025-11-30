@@ -94,29 +94,17 @@ jobs:
         if: matrix.is_mobile
         uses: android-actions/setup-android@v3
 
-      # - name: Restore Keystore from Base64
-      #   if: matrix.is_mobile
-      #   run: |
-      #     echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > emi-app.jks
-      #   env:
-      #     ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-
       - name: Restore Keystore
         if: matrix.is_mobile
         run: |
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d -i > release.jks
+          printf '%s' "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d -i > release.jks
           ls -lh release.jks
           keytool -list -keystore release.jks -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}"
-        env:
-          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/release.jks
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}   
 
       - name: Build Android
         if: matrix.is_mobile
         run: |
-          echo "--------------KEY: $ANDROID_KEYSTORE_PATH"
+          echo "--------------KEY PATH: $ANDROID_KEYSTORE_PATH"
           pnpm tauri android init
           pnpm tauri android build --apk true
         env:
