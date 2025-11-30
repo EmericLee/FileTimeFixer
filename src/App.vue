@@ -4,7 +4,7 @@
     <q-header elevated class="row justify-between q-pa-lg">
       <div class="title">
         <q-icon name="folder_open" class="title-icon" />
-        文件时间修复器
+        文件时间修复器2
       </div>
       <div class="subtitle">高效管理和修复文件时间信息</div>
       <div>
@@ -22,15 +22,15 @@
           <q-card-section>
             <div class="row q-gutter-md">
               <div class="col">
-                <q-input v-model="currentDirectory" placeholder="输入目录路径或点击选择" @keyup.enter="loadDirectory" dense=""
+                <q-input v-model="config.rootDirectory" placeholder="输入目录路径或点击选择" @keyup.enter="scanDirectory" dense=""
                          readonly outlined>
                   <template v-slot:append>
-                    <q-btn color="grey" flat @click="loadDirectory" :loading="loading" icon="refresh" />
+                    <q-btn color="grey" flat @click="scanDirectory" :loading="loading" icon="refresh" />
                   </template>
                 </q-input>
               </div>
               <div class="col-auto">
-                <q-btn unelevated class="full-height" @click="selectDirectory" color="primary" icon="folder"
+                <q-btn unelevated class="full-height" @click="selectRootDirectory" color="primary" icon="folder"
                        label="选择目录" />
               </div>
             </div>
@@ -89,7 +89,7 @@
 
                 <q-item-section>
                   <q-item-label class="ellipsis">
-                    {{ getRelativePath(item.path) }}
+                    {{ formatPath(item.path) }}
                   </q-item-label>
                 </q-item-section>
 
@@ -126,7 +126,7 @@
             <div class="empty-state">
               <q-icon name="folder_open" size="4rem" color="grey-6" />
               <div class="text-h6 q-mt-md">请选择一个目录来查看文件信息</div>
-              <q-btn color="primary" icon="folder" label="选择目录" @click="selectDirectory" class="q-mt-md" />
+              <q-btn color="primary" icon="folder" label="选择目录" @click="selectRootDirectory" class="q-mt-md" />
             </div>
           </q-card-section>
         </q-card>
@@ -198,7 +198,6 @@ export default {
   name: 'App',
   data() {
     return {
-      currentDirectory: '',
       files: [],
       fileAll: [],
       filesAllLength: 100,
@@ -248,38 +247,8 @@ export default {
       }
     },
 
-    async selectDirectory() {
-      try {
-        // 创建隐藏的文件输入元素
-        const input = document.createElement('input')
-        input.type = 'file'
-        input.webkitdirectory = true
-        input.multiple = false
-        
-        // 监听文件选择事件
-        input.addEventListener('change', (event) => {
-          const files = event.target.files
-          if (files.length > 0) {
-            // 获取选择的文件夹路径
-            const folderPath = files[0].webkitRelativePath.split('/')[0]
-            // 由于浏览器安全限制，无法直接获取完整路径
-            // 使用文件夹名称作为当前目录
-            this.currentDirectory = folderPath
-            this.loadDirectory()
-          }
-          // 清理输入元素
-          input.remove()
-        })
-        
-        // 触发文件选择对话框
-        input.click()
-      } catch (err) {
-        this.error = '选择目录失败: ' + err
-      }
-    },
-
-    async loadDirectory() {
-      if (!this.currentDirectory.trim()) {
+    async scanDirectory() {
+      if (!this.config.rootDirectory.trim()) {
         this.error = '请输入目录路径'
         return
       }
@@ -353,7 +322,7 @@ export default {
         })
 
         // 启动扫描，但不等待完整结果
-        invoke('scan_directory', { directory: this.currentDirectory, config: this.config })
+        invoke('scan_directory', { directory: this.config.rootDirectory, config: this.config })
 
       } catch (err) {
         this.error = '加载目录失败: ' + err
@@ -394,13 +363,13 @@ export default {
     },
 
     // 获取相对于当前目录的路径
-    getRelativePath(fullPath) {
-      if (!this.currentDirectory || !fullPath) {
+    formatPath(fullPath) {
+      if (!this.config.rootDirectory || !fullPath) {
         return fullPath;
       }
 
       // 确保路径格式一致
-      const currentDir = this.currentDirectory.replace(/\\/g, '/');
+      const currentDir = this.config.rootDirectory.replace(/\\/g, '/');
       const filePath = fullPath.replace(/\\/g, '/');
 
       // 如果文件路径以当前目录路径开头，则去掉重复部分
@@ -434,12 +403,13 @@ export default {
       try {
         const { open } = await import('@tauri-apps/plugin-dialog');
         const selected = await open({
-          directory: true,
+          directory: false,
           multiple: false,
           title: '选择根目录'
         });
         if (selected) {
           this.config.rootDirectory = selected;
+          return selected;
         }
       } catch (err) {
         this.error = '选择目录失败: ' + err;
