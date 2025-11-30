@@ -1,17 +1,17 @@
 {
   "name": "file-time-fixer",
   "private": true,
-  "version": "0.0.101",
+  "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@10.24.0",
   "scripts": {
     "build": "tauri build",
-    "build:web": "vite build",
+    "build:android": "tauri android build --apk true",
     "dev": "tauri dev",
-    "dev:web": "vite",
+    "dev:android": "tauri android dev",
     "preview": "vite preview",
     "preinstall": "npx only-allow pnpm",
-    "release:commit": " pnpm release-it  "
+    "release:commit": " pnpm release-it"
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",
