@@ -141,7 +141,7 @@ jobs:
           generate_release_notes: true
           files: |
             ${{ steps.sign_apk.outputs.signedReleaseFile }}
-            src-tauri/gen/android/app/build/outputs/apk/**/*.pak
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           # src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
           # src-tauri/gen/android/app/build/outputs/bundle/universalRelease/app-universal-release.aab
           # src-tauri/gen/android/app/build/outputs/**/release/*release.*
