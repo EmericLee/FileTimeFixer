@@ -116,7 +116,9 @@ dist
 
 # Tauri specific
 src-tauri/target/
-src-tauri/gen/
+# src-tauri/gen/
+src-tauri/gen/schemas
+src-tauri/signs/
 *.pdb
 *.exe
 *.dll
@@ -148,4 +150,4 @@ Thumbs.db
 *.tmp
 *.temp
 
-src-tauri/gen/schemas/capabilities.json
+
