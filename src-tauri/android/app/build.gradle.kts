@@ -25,24 +25,16 @@ android {
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
 
-    // "android": {
-    //   "signingConfig": {
-    //     "storeFile": "${TAURI_ANDROID_KEYSTORE_PATH}",
-    //     "storePassword": "${TAURI_ANDROID_KEYSTORE_PASSWORD}",
-    //     "keyAlias": "${TAURI_ANDROID_KEY_ALIAS}",
-    //     "keyPassword": "${TAURI_ANDROID_KEYSTORE_PASSWORD}"
-    //   }
-    // }
     signingConfigs {
         create("release") {
-            val keystorePath = System.getenv("TAURI_ANDROID_KEYSTORE_PATH")
+            val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
             if (keystorePath != null && keystorePath.isNotEmpty()) {
                 storeFile = file(keystorePath)
-                storePassword = System.getenv("TAURI_ANDROID_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("TAURI_ANDROID_KEY_ALIAS")
-                keyPassword = System.getenv("TAURI_ANDROID_KEYSTORE_PASSWORD")
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyPassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
             } else {
-                println("WARN: No signing config found, building unsigned APK/AAB")
+                println("WARN!!!!!!!!!!!!!!!!!!!!!!!: No signing config found, building unsigned APK/AAB")
             }
         }
     }
