@@ -127,7 +127,6 @@ src-tauri/gen/
 # Rust
 src-tauri/Cargo.lock
 src-tauri/**/*.rs.bk
-src-tauri/gen/
 
 # IDE
 .vscode/

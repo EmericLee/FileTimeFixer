@@ -25,11 +25,6 @@
           "file": "README.md",
           "search": "Current Version: .*",
           "replace": "Current Version: {{version}}"
-        },
-        {
-          "file": "test.txt",
-          "search": "version: .*",
-          "replace": "version:  {{version}}"
         }
       ]
     }
