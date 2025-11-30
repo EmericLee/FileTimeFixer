@@ -1,4 +1,5 @@
-import java.util.Properties
+import java.ut
+sssil.Properties
 
 plugins {
     id("com.android.application")
@@ -29,7 +30,9 @@ android {
         create("release") {
             val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
             if (keystorePath != null && keystorePath.isNotEmpty()) {
-                storeFile = file(keystorePath)
+                stores
+                
+                File = file(keystorePath)
                 storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyPassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("ANDROID_KEY_ALIAS")
