@@ -33,8 +33,9 @@ android {
                 storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyPassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                println("------------- Building signed APK/AAB -------------")
             } else {
-                println("WARN!!!!!!!!!!!!!!!!!!!!!!!: No signing config found, building unsigned APK/AAB")
+                println("------------- WARN!!!!!!!!!! No signing config found, building unsigned APK/AAB ")
             }
         }
     }
@@ -46,6 +47,7 @@ android {
             isJniDebuggable = true
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
+            println("------------- Building signed APK/AAB :debug-------------")
             packaging {                
                 jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
                 jniLibs.keepDebugSymbols.add("*/armeabi-v7a/*.so")
@@ -56,6 +58,7 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("release")
+            println("------------- Building signed APK/AAB :release-------------")
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
