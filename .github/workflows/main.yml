@@ -115,23 +115,24 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}     
 
+      # 3. 对 APK 进行签名 (可选，用于直接分发)
+      
       # - name: List Android Build Tools
       #   if: matrix.is_mobile
       #   run: ls $ANDROID_HOME/build-tools/
 
-      # 3. 对 APK 进行签名 (可选，用于直接分发)
-      - name: Sign APK
-        id: sign_apk
-        if: matrix.is_mobile
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: src-tauri/gen/android/app/build/outputs/apk/universal/release/
-          signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "35.0.0"
+      # - name: Sign APK
+      #   id: sign_apk
+      #   if: matrix.is_mobile
+      #   uses: r0adkll/sign-android-release@v1
+      #   with:
+      #     releaseDirectory: src-tauri/gen/android/app/build/outputs/apk/universal/release/
+      #     signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      #     alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+      #     keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      #     keyPassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      #   env:
+      #     BUILD_TOOLS_VERSION: "35.0.0"
 
       - name: Upload Android APK to Release
         if: matrix.is_mobile
