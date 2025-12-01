@@ -6,7 +6,7 @@ on:
       - "v*.*.*"  # ${{ github.ref_name }} 必须是 v 开头的标签，例如 v0.0.1
 
 jobs:
-  publish-desktop:
+  publish:
     permissions:
       contents: write
     strategy:
@@ -21,7 +21,7 @@ jobs:
             args: ""
           - platform: "ubuntu-22.04"
             args: ""
-          - platform: "ubuntu-24.04-arm"
+          - platform: "ubuntu-20.04-arm"
             args: ""
           - platform: "ubuntu-latest"
             is_mobile: "android"
