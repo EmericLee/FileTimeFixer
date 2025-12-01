@@ -21,7 +21,7 @@ jobs:
             args: ""
           - platform: "ubuntu-22.04"
             args: ""
-          - platform: "ubuntu-20.04-arm"
+          - platform: "ubuntu-22.04-arm"
             args: ""
           - platform: "ubuntu-latest"
             is_mobile: "android"

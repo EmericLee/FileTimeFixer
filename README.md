@@ -1,6 +1,6 @@
 # File Time Fixer (tauri 2.0 example)
 
-Current Version: v0.1.3
+Current Version: v0.1.4
 
 一个基于Tauri和Vue.js的桌面应用程序，用于查看和修复文件的时间戳信息，特别是图片的EXIF拍摄时间。
 同时：这也是一个利用tauri框架进行跨平台开发的技术验证范例。
@@ -108,7 +108,7 @@ FileTimeFixer/
 
 ## 更新日志
 
-### v0.1.3 (初始版本)
+### v0.1.4 (初始版本)
 - 基本的文件浏览功能
 - 文件信息显示（大小、修改时间）
 - EXIF数据读取功能
